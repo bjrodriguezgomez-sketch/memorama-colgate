@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <title>Memorama Colgate-Palmolive</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-* {
-  box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
-}
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
 
 body {
   margin: 0;
@@ -16,114 +14,87 @@ body {
   text-align: center;
 }
 
-/* ===== HEADER ===== */
 header {
+  background: #d32f2f;
+  color: white;
   padding: 20px;
+  font-size: 28px;
+  font-weight: bold;
 }
 
-h1 {
-  margin-bottom: 10px;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
+.hidden { display: none; }
 
 /* ===== MENU ===== */
 #menu {
-  margin-top: 40px;
+  margin-top: 60px;
 }
 
-.levels {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.level {
-  padding: 20px 30px;
-  border-radius: 12px;
-  border: 3px solid #d32f2f;
-  background: white;
-  font-size: 18px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.level:hover,
-.level.active {
+.menu-btn {
   background: #d32f2f;
   color: white;
-}
-
-/* ===== GAME BOARD ===== */
-#game {
-  display: none;
-  padding: 30px;
-}
-
-.board {
-  display: grid;
-  justify-content: center;
-  gap: 18px;
-}
-
-/* ===== CARD ===== */
-.card {
-  width: 140px;
-  height: 180px;
-  perspective: 1000px;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  margin: 10px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
-.card-inner {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
+.menu-btn:hover {
+  background: #b71c1c;
 }
 
-.card.flip .card-inner {
-  transform: rotateY(180deg);
+/* ===== HUD ===== */
+#hud {
+  margin: 15px;
+  font-size: 18px;
 }
 
-.card-face {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 16px;
-  backface-visibility: hidden;
+button {
+  cursor: pointer;
 }
 
-/* BACK */
-.card-back {
+/* ===== BOARD ===== */
+#board {
+  display: grid;
+  gap: 15px;
+  justify-content: center;
+  margin: 30px auto;
+  max-width: 600px;
+}
+
+.card {
+  width: 120px;
+  height: 160px;
   background: #d32f2f;
+  border-radius: 15px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-.card-back span {
   color: white;
   font-weight: bold;
-  margin-top: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  position: relative;
 }
 
-/* FRONT */
-.card-front {
+.card img {
+  width: 90%;
+  height: auto;
+  display: none;
+}
+
+.card.flipped {
   background: white;
-  transform: rotateY(180deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.card-front img {
-  max-width: 90%;
-  max-height: 90%;
+.card.flipped img {
+  display: block;
+}
+
+.card.matched {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 /* ===== MODAL ===== */
@@ -131,203 +102,201 @@ h1 {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
 }
 
-.modal {
+.modal-content {
   background: white;
-  padding: 40px;
-  border-radius: 20px;
+  padding: 30px;
+  border-radius: 12px;
   width: 90%;
   max-width: 400px;
 }
 
+.modal-content h2 {
+  color: #d32f2f;
+}
+
 /* ===== CONFETTI ===== */
-canvas {
+.confetti {
   position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(360deg);
+  }
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1>Memorama Colgate-Palmolive</h1>
-  <div class="controls">
-    <button onclick="resetGame()">🔄 Reiniciar</button>
-    <button onclick="showMenu()">🏠 Menú</button>
-    <span>Intentos: <b id="tries">0</b></span>
-  </div>
-</header>
+<header>Memorama Colgate-Palmolive</header>
 
 <!-- MENU -->
 <div id="menu">
   <h2>Selecciona dificultad</h2>
-  <div class="levels">
-    <div class="level" onclick="startGame(2,2,this)">Fácil</div>
-    <div class="level" onclick="startGame(3,4,this)">Medio</div>
-    <div class="level" onclick="startGame(4,4,this)">Difícil</div>
-  </div>
+  <button class="menu-btn" onclick="startGame('easy')">Fácil</button>
+  <button class="menu-btn" onclick="startGame('medium')">Normal</button>
+  <button class="menu-btn" onclick="startGame('hard')">Difícil</button>
 </div>
 
 <!-- GAME -->
-<div id="game">
-  <div class="board" id="board"></div>
+<div id="game" class="hidden">
+  <div id="hud">
+    <button onclick="resetGame()">🔄 Reiniciar</button>
+    <button onclick="backToMenu()">🏠 Menú</button>
+    &nbsp;&nbsp; Intentos: <span id="moves">0</span>
+  </div>
+  <div id="board"></div>
 </div>
 
-<!-- MODAL -->
-<div id="winModal">
-  <div class="modal">
-    <h2>🎉 ¡Felicidades!</h2>
-    <p>Completaste el memorama</p>
-    <p>Intentos: <b id="finalTries"></b></p>
-    <button onclick="resetGame()">Jugar otra vez</button>
-    <button onclick="showMenu()">Menú</button>
+<!-- WIN MODAL -->
+<div id="winModal" class="hidden">
+  <div class="modal-content">
+    <h2>¡Felicidades!</h2>
+    <p>Lo lograste en <strong><span id="finalMoves"></span></strong> intentos</p>
+    <button class="menu-btn" onclick="resetGame()">Jugar otra vez</button>
   </div>
 </div>
 
-<canvas id="confetti"></canvas>
-
 <script>
-const images = [
-  'img/img1.png',
-  'img/img3.png',
-  'img/img4.png',
-  'img/img5.png',
-  'img/img6.png',
-  'img/img7.png',
-  'img/img8.png'
-];
+const difficulties = {
+  easy: { rows: 2, cols: 2, pairs: 2 },
+  medium: { rows: 2, cols: 3, pairs: 3 },
+  hard: { rows: 4, cols: 4, pairs: 8 }
+};
 
-let first = null;
+let firstCard = null;
+let secondCard = null;
 let lock = false;
+let moves = 0;
 let matches = 0;
-let tries = 0;
-let totalPairs = 0;
+let confettiInterval = null;
+let currentDifficulty = null;
 
-function showMenu() {
-  document.getElementById('menu').style.display = 'block';
-  document.getElementById('game').style.display = 'none';
-  document.getElementById('winModal').style.display = 'none';
-  document.querySelectorAll('.level').forEach(l => l.classList.remove('active'));
+const board = document.getElementById("board");
+const movesEl = document.getElementById("moves");
+
+function startGame(level) {
+  currentDifficulty = level;
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  initBoard();
 }
 
-function resetGame() {
-  document.getElementById('winModal').style.display = 'none';
-  startGame(currentRows, currentCols);
-}
-
-let currentRows = 0;
-let currentCols = 0;
-
-function startGame(rows, cols, el) {
-  currentRows = rows;
-  currentCols = cols;
-
-  document.querySelectorAll('.level').forEach(l => l.classList.remove('active'));
-  if (el) el.classList.add('active');
-
-  document.getElementById('menu').style.display = 'none';
-  document.getElementById('game').style.display = 'block';
-
-  tries = 0;
+function initBoard() {
+  stopConfetti();
+  board.innerHTML = "";
+  moves = 0;
   matches = 0;
-  document.getElementById('tries').textContent = 0;
+  movesEl.textContent = moves;
 
-  const board = document.getElementById('board');
-  board.innerHTML = '';
-  board.style.gridTemplateColumns = `repeat(${cols}, 140px)`;
+  const { rows, cols, pairs } = difficulties[currentDifficulty];
 
-  const needed = (rows * cols) / 2;
-  totalPairs = needed;
+  board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-  const selected = images.slice(0, needed);
-  const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
+  let images = [];
+  for (let i = 1; i <= pairs; i++) {
+    images.push(`img${i}.png`, `img${i}.png`);
+  }
 
-  cards.forEach(img => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="card-inner">
-        <div class="card-face card-back">
-          <span>Colgate</span>
-        </div>
-        <div class="card-face card-front">
-          <img src="${img}">
-        </div>
-      </div>
-    `;
-    card.onclick = () => flip(card, img);
+  images.sort(() => Math.random() - 0.5);
+
+  images.forEach(src => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<span>Colgate</span><img src="${src}" />`;
+    card.onclick = () => flipCard(card);
     board.appendChild(card);
   });
 }
 
-function flip(card, img) {
-  if (lock || card === first || card.classList.contains('flip')) return;
-  card.classList.add('flip');
+function flipCard(card) {
+  if (lock || card.classList.contains("flipped")) return;
 
-  if (!first) {
-    first = { card, img };
+  card.classList.add("flipped");
+
+  if (!firstCard) {
+    firstCard = card;
     return;
   }
 
-  tries++;
-  document.getElementById('tries').textContent = tries;
+  secondCard = card;
+  lock = true;
+  moves++;
+  movesEl.textContent = moves;
 
-  if (first.img === img) {
+  const img1 = firstCard.querySelector("img").src;
+  const img2 = secondCard.querySelector("img").src;
+
+  if (img1 === img2) {
+    firstCard.classList.add("matched");
+    secondCard.classList.add("matched");
     matches++;
-    first = null;
-    if (matches === totalPairs) win();
+    resetTurn();
+
+    if (matches === difficulties[currentDifficulty].pairs) {
+      winGame();
+    }
   } else {
-    lock = true;
     setTimeout(() => {
-      card.classList.remove('flip');
-      first.card.classList.remove('flip');
-      first = null;
-      lock = false;
-    }, 900);
+      firstCard.classList.remove("flipped");
+      secondCard.classList.remove("flipped");
+      resetTurn();
+    }, 800);
   }
 }
 
-function win() {
-  document.getElementById('finalTries').textContent = tries;
-  document.getElementById('winModal').style.display = 'flex';
-  launchConfetti();
+function resetTurn() {
+  firstCard = null;
+  secondCard = null;
+  lock = false;
 }
 
-/* ===== CONFETTI ===== */
-function launchConfetti() {
-  const canvas = document.getElementById('confetti');
-  const ctx = canvas.getContext('2d');
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
+function winGame() {
+  document.getElementById("finalMoves").textContent = moves;
+  document.getElementById("winModal").classList.remove("hidden");
+  startConfetti();
+}
 
-  const pieces = Array.from({length: 200}, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    r: Math.random() * 6 + 4,
-    dy: Math.random() * 3 + 2
-  }));
+function resetGame() {
+  document.getElementById("winModal").classList.add("hidden");
+  initBoard();
+}
 
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    pieces.forEach(p => {
-      ctx.fillStyle = '#d32f2f';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-      p.y += p.dy;
-      if (p.y > canvas.height) p.y = 0;
-    });
-    requestAnimationFrame(draw);
-  }
-  draw();
+function backToMenu() {
+  stopConfetti();
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+}
+
+/* ===== CONFETTI CONTROL ===== */
+function startConfetti() {
+  stopConfetti();
+  confettiInterval = setInterval(() => {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = Math.random() > 0.5 ? "#ffffff" : "#d32f2f";
+    c.style.animationDuration = (Math.random() * 3 + 2) + "s";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }, 200);
+}
+
+function stopConfetti() {
+  clearInterval(confettiInterval);
+  confettiInterval = null;
+  document.querySelectorAll(".confetti").forEach(c => c.remove());
 }
 </script>
 
