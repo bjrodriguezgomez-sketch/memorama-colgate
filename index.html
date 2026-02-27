@@ -1,85 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Memorama Colgate-Palmolive</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  text-align: center;
+}
+
+header {
+  background: #7b1414;
+  color: white;
+  padding: 20px;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+#menu, #game {
+  padding: 30px;
+}
+
+button {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  margin: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #b71c1c;
+}
+
+#board {
+  display: grid;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.card {
+  width: 120px;
+  height: 120px;
+  background: #d32f2f;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.card img {
+  width: 90px;
+  display: none;
+}
+
+.card.flipped img {
+  display: block;
+}
+
+.card.flipped {
+  background: white;
+}
+
+#modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#modalContent {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 300px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Memorama Colgate-Palmolive</header>
+
+<div id="menu">
+  <h2>Selecciona dificultad</h2>
+  <button onclick="startGame('easy')">Fácil (2x2)</button>
+  <button onclick="startGame('normal')">Normal (2x3)</button>
+  <button onclick="startGame('hard')">Difícil (4x4)</button>
+</div>
+
+<div id="game" style="display:none;">
+  <p>Intentos: <span id="attempts">0</span></p>
+  <div id="board"></div>
+</div>
+
+<div id="modal">
+  <div id="modalContent">
+    <h2 style="color:#d32f2f;">¡Felicidades!</h2>
+    <p id="winText"></p>
+    <button onclick="playAgain()">Jugar otra vez</button>
+  </div>
+</div>
+
 <script>
-/* =========================
-   VARIABLES GLOBALES
-========================= */
+const images = [
+  "img/img1.png","img/img2.png","img/img3.png","img/img4.png",
+  "img/img5.png","img/img6.png","img/img7.png","img/img8.png"
+];
+
 let firstCard = null;
 let secondCard = null;
 let lockBoard = false;
 let attempts = 0;
 let matches = 0;
 let totalPairs = 0;
-let currentDifficulty = null;
+let confettiInterval = null;
 
-/* =========================
-   ELEMENTOS
-========================= */
-const menu = document.getElementById("menu");
-const game = document.getElementById("game");
 const board = document.getElementById("board");
 const attemptsEl = document.getElementById("attempts");
-const modal = document.getElementById("winModal");
+const menu = document.getElementById("menu");
+const game = document.getElementById("game");
+const modal = document.getElementById("modal");
 const winText = document.getElementById("winText");
 
-/* =========================
-   CONFIGURACIÓN DIFICULTAD
-========================= */
-const difficulties = {
-  easy: { cols: 2, pairs: 2 },
-  normal: { cols: 3, pairs: 3 }, // 2x3
-  hard: { cols: 4, pairs: 8 }    // 4x4
-};
-
-const images = [
-  "img/img1.png",
-  "img/img2.png",
-  "img/img3.png",
-  "img/img4.png",
-  "img/img5.png",
-  "img/img6.png",
-  "img/img7.png",
-  "img/img8.png"
-];
-
-/* =========================
-   INICIAR JUEGO
-========================= */
 function startGame(level) {
-  currentDifficulty = level;
-  resetState();
+  menu.style.display = "none";
+  game.style.display = "block";
+  resetGame();
 
-  const config = difficulties[level];
-  totalPairs = config.pairs;
+  let grid;
+  if (level === "easy") grid = [2,2];
+  if (level === "normal") grid = [2,3];
+  if (level === "hard") grid = [4,4];
 
-  const selectedImages = images.slice(0, totalPairs);
-  const cards = [...selectedImages, ...selectedImages]
-    .sort(() => Math.random() - 0.5);
+  board.style.gridTemplateColumns = `repeat(${grid[1]}, 120px)`;
 
-  board.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
-  board.innerHTML = "";
+  totalPairs = (grid[0] * grid[1]) / 2;
+  const selected = images.slice(0, totalPairs);
+  const cards = [...selected, ...selected].sort(() => 0.5 - Math.random());
 
   cards.forEach(src => {
     const card = document.createElement("div");
     card.className = "card";
-    card.dataset.image = src;
-
-    card.innerHTML = `
-      <div class="front">Colgate</div>
-      <div class="back"><img src="${src}" /></div>
-    `;
-
+    card.innerHTML = `<img src="${src}">`;
     card.addEventListener("click", () => flipCard(card));
     board.appendChild(card);
   });
-
-  menu.style.display = "none";
-  game.style.display = "block";
 }
 
-/* =========================
-   VOLTEAR CARTA
-========================= */
 function flipCard(card) {
-  if (lockBoard || card === firstCard || card.classList.contains("matched")) return;
+  if (lockBoard || card === firstCard || card.classList.contains("flipped")) return;
 
   card.classList.add("flipped");
 
@@ -89,30 +173,18 @@ function flipCard(card) {
   }
 
   secondCard = card;
-  lockBoard = true;
   attempts++;
   attemptsEl.textContent = attempts;
 
-  checkMatch();
-}
+  const img1 = firstCard.querySelector("img").src;
+  const img2 = secondCard.querySelector("img").src;
 
-/* =========================
-   COMPARAR
-========================= */
-function checkMatch() {
-  const isMatch = firstCard.dataset.image === secondCard.dataset.image;
-
-  if (isMatch) {
-    firstCard.classList.add("matched");
-    secondCard.classList.add("matched");
+  if (img1 === img2) {
     matches++;
-
     resetTurn();
-
-    if (matches === totalPairs) {
-      setTimeout(showWin, 600);
-    }
+    if (matches === totalPairs) setTimeout(showWin, 500);
   } else {
+    lockBoard = true;
     setTimeout(() => {
       firstCard.classList.remove("flipped");
       secondCard.classList.remove("flipped");
@@ -121,50 +193,50 @@ function checkMatch() {
   }
 }
 
-/* =========================
-   RESET TURNO
-========================= */
 function resetTurn() {
-  [firstCard, secondCard] = [null, null];
-  lockBoard = false;
+  [firstCard, secondCard, lockBoard] = [null, null, false];
 }
 
-/* =========================
-   GANAR
-========================= */
 function showWin() {
   winText.textContent = `Lo lograste en ${attempts} intentos`;
   modal.style.display = "flex";
+  startConfetti();
 }
 
-/* =========================
-   JUGAR OTRA VEZ
-========================= */
 function playAgain() {
+  stopConfetti();
   modal.style.display = "none";
   game.style.display = "none";
   menu.style.display = "block";
-  resetState();
+  board.innerHTML = "";
 }
 
-/* =========================
-   RESET GENERAL
-========================= */
-function resetState() {
+function resetGame() {
   board.innerHTML = "";
   attempts = 0;
   matches = 0;
-  firstCard = null;
-  secondCard = null;
-  lockBoard = false;
   attemptsEl.textContent = "0";
 }
 
-/* =========================
-   BOTONES
-========================= */
-document.getElementById("easyBtn").onclick = () => startGame("easy");
-document.getElementById("normalBtn").onclick = () => startGame("normal");
-document.getElementById("hardBtn").onclick = () => startGame("hard");
-document.getElementById("playAgainBtn").onclick = playAgain;
+function startConfetti() {
+  stopConfetti();
+  confettiInterval = setInterval(() => {
+    confetti({
+      particleCount: 4,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#ffffff', '#d32f2f']
+    });
+  }, 250);
+}
+
+function stopConfetti() {
+  if (confettiInterval) {
+    clearInterval(confettiInterval);
+    confettiInterval = null;
+  }
+}
 </script>
+
+</body>
+</html>
