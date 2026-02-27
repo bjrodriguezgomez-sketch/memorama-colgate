@@ -1,242 +1,246 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Memorama Colgate-Palmolive</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Memorama Colgate-Palmolive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  text-align: center;
-}
+    body {
+      margin: 0;
+      background: #f2f2f2;
+      text-align: center;
+    }
 
-header {
-  background: #7b1414;
-  color: white;
-  padding: 20px;
-  font-size: 28px;
-  font-weight: bold;
-}
+    header {
+      background: #7a0f0f;
+      color: white;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+    }
 
-#menu, #game {
-  padding: 30px;
-}
+    #controls {
+      margin: 20px;
+    }
 
-button {
-  background: #d32f2f;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  margin: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-}
+    button {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin: 5px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-button:hover {
-  background: #b71c1c;
-}
+    button:hover {
+      background: #b71c1c;
+    }
 
-#board {
-  display: grid;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 20px;
-}
+    #attempts {
+      margin: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
 
-.card {
-  width: 120px;
-  height: 120px;
-  background: #d32f2f;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
+    #game {
+      display: grid;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px auto;
+      max-width: 600px;
+    }
 
-.card img {
-  width: 90px;
-  display: none;
-}
+    /* CARTA */
+    .card {
+      width: 120px;
+      height: 120px;
+      background: #d32f2f;
+      border-radius: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden; /* 🔒 evita que la imagen se salga */
+    }
 
-.card.flipped img {
-  display: block;
-}
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* ✅ AJUSTE 2: la imagen siempre cabe */
+      display: none;
+      pointer-events: none;
+    }
 
-.card.flipped {
-  background: white;
-}
+    .card.flipped img {
+      display: block;
+    }
 
-#modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
+    .card.flipped {
+      background: white;
+    }
 
-#modalContent {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  width: 300px;
-}
-</style>
+    /* MODAL */
+    #modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    #modalContent {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      width: 300px;
+    }
+
+    #modalContent h2 {
+      color: #d32f2f;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>Memorama Colgate-Palmolive</header>
+  <header>Memorama Colgate-Palmolive</header>
 
-<div id="menu">
-  <h2>Selecciona dificultad</h2>
-  <button onclick="startGame('easy')">Fácil (2x2)</button>
-  <button onclick="startGame('normal')">Normal (2x3)</button>
-  <button onclick="startGame('hard')">Difícil (4x4)</button>
-</div>
-
-<div id="game" style="display:none;">
-  <p>Intentos: <span id="attempts">0</span></p>
-  <div id="board"></div>
-</div>
-
-<div id="modal">
-  <div id="modalContent">
-    <h2 style="color:#d32f2f;">¡Felicidades!</h2>
-    <p id="winText"></p>
-    <button onclick="playAgain()">Jugar otra vez</button>
+  <div id="controls">
+    <button onclick="startGame(6)">Fácil</button>
+    <button onclick="startGame(12)">Medio</button>
+    <button onclick="startGame(16)">Difícil</button>
   </div>
-</div>
 
-<script>
-const images = [
-  "img/img1.png","img/img2.png","img/img3.png","img/img4.png",
-  "img/img5.png","img/img6.png","img/img7.png","img/img8.png"
-];
+  <div id="attempts">Intentos: 0</div>
 
-let firstCard = null;
-let secondCard = null;
-let lockBoard = false;
-let attempts = 0;
-let matches = 0;
-let totalPairs = 0;
-let confettiInterval = null;
+  <div id="game"></div>
 
-const board = document.getElementById("board");
-const attemptsEl = document.getElementById("attempts");
-const menu = document.getElementById("menu");
-const game = document.getElementById("game");
-const modal = document.getElementById("modal");
-const winText = document.getElementById("winText");
+  <!-- MODAL -->
+  <div id="modal">
+    <div id="modalContent">
+      <h2>¡Felicidades!</h2>
+      <p id="resultText"></p>
+      <button onclick="restart()">Jugar otra vez</button>
+    </div>
+  </div>
 
-function startGame(level) {
-  menu.style.display = "none";
-  game.style.display = "block";
-  resetGame();
+  <audio id="successSound" src="feria.wav"></audio>
+  <audio id="errorSound" src="error.wav"></audio>
 
-  let grid;
-  if (level === "easy") grid = [2,2];
-  if (level === "normal") grid = [2,3];
-  if (level === "hard") grid = [4,4];
+  <script>
+    const images = [
+      "img/img1.png",
+      "img/img2.png",
+      "img/img3.png",
+      "img/img4.png",
+      "img/img5.png",
+      "img/img6.png",
+      "img/img7.png",
+      "img/img8.png"
+    ];
 
-  board.style.gridTemplateColumns = `repeat(${grid[1]}, 120px)`;
+    let firstCard = null;
+    let secondCard = null;
+    let lock = false;
+    let attempts = 0;
+    let matches = 0;
+    let totalPairs = 0;
 
-  totalPairs = (grid[0] * grid[1]) / 2;
-  const selected = images.slice(0, totalPairs);
-  const cards = [...selected, ...selected].sort(() => 0.5 - Math.random());
+    function startGame(cardCount) {
+      const game = document.getElementById("game");
+      game.innerHTML = "";
+      attempts = 0;
+      matches = 0;
+      firstCard = null;
+      secondCard = null;
+      lock = false;
 
-  cards.forEach(src => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `<img src="${src}">`;
-    card.addEventListener("click", () => flipCard(card));
-    board.appendChild(card);
-  });
-}
+      document.getElementById("attempts").textContent = "Intentos: 0";
 
-function flipCard(card) {
-  if (lockBoard || card === firstCard || card.classList.contains("flipped")) return;
+      document.getElementById("modal").style.display = "none";
 
-  card.classList.add("flipped");
+      totalPairs = cardCount / 2;
 
-  if (!firstCard) {
-    firstCard = card;
-    return;
-  }
+      let selected = images.slice(0, totalPairs);
+      let cards = [...selected, ...selected].sort(() => 0.5 - Math.random());
 
-  secondCard = card;
-  attempts++;
-  attemptsEl.textContent = attempts;
+      game.style.gridTemplateColumns = `repeat(${Math.sqrt(cardCount)}, 120px)`;
 
-  const img1 = firstCard.querySelector("img").src;
-  const img2 = secondCard.querySelector("img").src;
+      cards.forEach(img => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.image = img;
 
-  if (img1 === img2) {
-    matches++;
-    resetTurn();
-    if (matches === totalPairs) setTimeout(showWin, 500);
-  } else {
-    lockBoard = true;
-    setTimeout(() => {
-      firstCard.classList.remove("flipped");
-      secondCard.classList.remove("flipped");
-      resetTurn();
-    }, 800);
-  }
-}
+        const image = document.createElement("img");
+        image.src = img;
 
-function resetTurn() {
-  [firstCard, secondCard, lockBoard] = [null, null, false];
-}
+        card.appendChild(image);
+        card.addEventListener("click", () => flipCard(card));
 
-function showWin() {
-  winText.textContent = `Lo lograste en ${attempts} intentos`;
-  modal.style.display = "flex";
-  startConfetti();
-}
+        game.appendChild(card);
+      });
+    }
 
-function playAgain() {
-  stopConfetti();
-  modal.style.display = "none";
-  game.style.display = "none";
-  menu.style.display = "block";
-  board.innerHTML = "";
-}
+    function flipCard(card) {
+      if (lock || card.classList.contains("flipped")) return;
 
-function resetGame() {
-  board.innerHTML = "";
-  attempts = 0;
-  matches = 0;
-  attemptsEl.textContent = "0";
-}
+      card.classList.add("flipped");
 
-function startConfetti() {
-  stopConfetti();
-  confettiInterval = setInterval(() => {
-    confetti({
-      particleCount: 4,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#ffffff', '#d32f2f']
-    });
-  }, 250);
-}
+      if (!firstCard) {
+        firstCard = card;
+        return;
+      }
 
-function stopConfetti() {
-  if (confettiInterval) {
-    clearInterval(confettiInterval);
-    confettiInterval = null;
-  }
-}
-</script>
+      secondCard = card;
+      lock = true;
+      attempts++;
+      document.getElementById("attempts").textContent = `Intentos: ${attempts}`;
+
+      if (firstCard.dataset.image === secondCard.dataset.image) {
+        matches++;
+        document.getElementById("successSound").play();
+        resetTurn();
+
+        if (matches === totalPairs) {
+          setTimeout(showWin, 600);
+        }
+      } else {
+        document.getElementById("errorSound").play();
+        setTimeout(() => {
+          firstCard.classList.remove("flipped");
+          secondCard.classList.remove("flipped");
+          resetTurn();
+        }, 900);
+      }
+    }
+
+    function resetTurn() {
+      firstCard = null;
+      secondCard = null;
+      lock = false;
+    }
+
+    function showWin() {
+      document.getElementById("resultText").textContent =
+        `Lo lograste en ${attempts} intentos`;
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    function restart() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("game").innerHTML = "";
+    }
+  </script>
 
 </body>
 </html>
