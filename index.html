@@ -1,308 +1,170 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Memorama Colgate-Palmolive</title>
-
-<style>
-:root {
-  --red: #d52b2b;
-  --white: #ffffff;
-}
-
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-body {
-  margin: 0;
-  background: #f3f3f3;
-}
-
-/* HEADER */
-header {
-  background: var(--red);
-  color: white;
-  padding: 20px;
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-/* MENU */
-#menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: calc(100vh - 80px);
-  gap: 20px;
-}
-
-#menu h2 {
-  font-size: 24px;
-}
-
-.levels button {
-  background: var(--red);
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  font-size: 18px;
-  border-radius: 10px;
-  cursor: pointer;
-  margin: 0 10px;
-}
-
-.levels button:hover {
-  background: #b82020;
-}
-
-/* GAME */
-#game {
-  display: none;
-  padding: 20px;
-}
-
-#stats {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 20px;
-  font-size: 18px;
-}
-
-#board {
-  display: grid;
-  gap: 15px;
-  justify-content: center;
-}
-
-/* CARD */
-.card {
-  width: 120px;
-  height: 160px;
-  border-radius: 16px;
-  background: var(--red);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.card img {
-  width: 80%;
-  display: none;
-}
-
-.card.flipped {
-  background: white;
-}
-
-.card.flipped img {
-  display: block;
-}
-
-/* MODAL */
-#winModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-#winModal .content {
-  background: white;
-  padding: 30px 40px;
-  border-radius: 16px;
-  text-align: center;
-}
-
-#winModal h2 {
-  color: var(--red);
-}
-
-#winModal button {
-  margin-top: 20px;
-  background: var(--red);
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  font-size: 16px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-/* CONFETTI */
-.confetti {
-  position: fixed;
-  top: -10px;
-  width: 10px;
-  height: 10px;
-  animation: fall linear forwards;
-}
-
-@keyframes fall {
-  to {
-    transform: translateY(110vh) rotate(360deg);
-  }
-}
-</style>
-</head>
-
-<body>
-
-<header>Memorama Colgate-Palmolive</header>
-
-<!-- MENU -->
-<div id="menu">
-  <h2>Selecciona dificultad</h2>
-  <div class="levels">
-    <button onclick="startGame('easy')">Fácil</button>
-    <button onclick="startGame('normal')">Normal</button>
-    <button onclick="startGame('hard')">Difícil</button>
-  </div>
-</div>
-
-<!-- GAME -->
-<div id="game">
-  <div id="stats">Intentos: <span id="moves">0</span></div>
-  <div id="board"></div>
-</div>
-
-<!-- MODAL -->
-<div id="winModal">
-  <div class="content">
-    <h2>¡Felicidades!</h2>
-    <p>Lo lograste en <span id="finalMoves"></span> intentos</p>
-    <button onclick="backToMenu()">Jugar otra vez</button>
-  </div>
-</div>
-
 <script>
-/* ===== ESTADO SEGURO ===== */
-let gameStarted = false;
-let moves = 0;
-let flipped = [];
-let matchedPairs = 0;
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+let firstCard = null;
+let secondCard = null;
+let lockBoard = false;
+let attempts = 0;
+let matches = 0;
 let totalPairs = 0;
-let confettiInterval = null;
+let currentDifficulty = null;
+
+/* =========================
+   ELEMENTOS
+========================= */
+const menu = document.getElementById("menu");
+const game = document.getElementById("game");
+const board = document.getElementById("board");
+const attemptsEl = document.getElementById("attempts");
+const modal = document.getElementById("winModal");
+const winText = document.getElementById("winText");
+
+/* =========================
+   CONFIGURACIÓN DIFICULTAD
+========================= */
+const difficulties = {
+  easy: { cols: 2, pairs: 2 },
+  normal: { cols: 3, pairs: 3 }, // 2x3
+  hard: { cols: 4, pairs: 8 }    // 4x4
+};
 
 const images = [
-  "img/img1.png","img/img2.png","img/img3.png","img/img4.png",
-  "img/img5.png","img/img6.png","img/img7.png","img/img8.png"
+  "img/img1.png",
+  "img/img2.png",
+  "img/img3.png",
+  "img/img4.png",
+  "img/img5.png",
+  "img/img6.png",
+  "img/img7.png",
+  "img/img8.png"
 ];
 
-/* ===== START GAME ===== */
+/* =========================
+   INICIAR JUEGO
+========================= */
 function startGame(level) {
-  stopConfetti();
-  document.getElementById("winModal").style.display = "none";
+  currentDifficulty = level;
+  resetState();
 
-  let rows, cols;
-  if (level === "easy") [rows, cols] = [2, 2];
-  if (level === "normal") [rows, cols] = [2, 3];
-  if (level === "hard") [rows, cols] = [4, 4];
+  const config = difficulties[level];
+  totalPairs = config.pairs;
 
-  const cardsCount = rows * cols;
-  totalPairs = cardsCount / 2;
-  matchedPairs = 0;
-  moves = 0;
-  flipped = [];
-  gameStarted = true;
+  const selectedImages = images.slice(0, totalPairs);
+  const cards = [...selectedImages, ...selectedImages]
+    .sort(() => Math.random() - 0.5);
 
-  document.getElementById("moves").textContent = moves;
-  document.getElementById("menu").style.display = "none";
-  document.getElementById("game").style.display = "block";
-
-  const board = document.getElementById("board");
+  board.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
   board.innerHTML = "";
-  board.style.gridTemplateColumns = `repeat(${cols}, 120px)`;
 
-  let selectedImages = images.slice(0, totalPairs);
-  let deck = [...selectedImages, ...selectedImages].sort(() => Math.random() - 0.5);
-
-  deck.forEach(src => {
+  cards.forEach(src => {
     const card = document.createElement("div");
     card.className = "card";
-    card.innerHTML = `<img src="${src}" alt="">`;
-    card.onclick = () => flipCard(card, src);
+    card.dataset.image = src;
+
+    card.innerHTML = `
+      <div class="front">Colgate</div>
+      <div class="back"><img src="${src}" /></div>
+    `;
+
+    card.addEventListener("click", () => flipCard(card));
     board.appendChild(card);
   });
+
+  menu.style.display = "none";
+  game.style.display = "block";
 }
 
-/* ===== GAME LOGIC ===== */
-function flipCard(card, src) {
-  if (!gameStarted) return;
-  if (card.classList.contains("flipped")) return;
-  if (flipped.length === 2) return;
+/* =========================
+   VOLTEAR CARTA
+========================= */
+function flipCard(card) {
+  if (lockBoard || card === firstCard || card.classList.contains("matched")) return;
 
   card.classList.add("flipped");
-  flipped.push({card, src});
 
-  if (flipped.length === 2) {
-    moves++;
-    document.getElementById("moves").textContent = moves;
+  if (!firstCard) {
+    firstCard = card;
+    return;
+  }
 
-    if (flipped[0].src === flipped[1].src) {
-      matchedPairs++;
-      flipped = [];
+  secondCard = card;
+  lockBoard = true;
+  attempts++;
+  attemptsEl.textContent = attempts;
 
-      if (matchedPairs === totalPairs) {
-        win();
-      }
-    } else {
-      setTimeout(() => {
-        flipped.forEach(f => f.card.classList.remove("flipped"));
-        flipped = [];
-      }, 800);
+  checkMatch();
+}
+
+/* =========================
+   COMPARAR
+========================= */
+function checkMatch() {
+  const isMatch = firstCard.dataset.image === secondCard.dataset.image;
+
+  if (isMatch) {
+    firstCard.classList.add("matched");
+    secondCard.classList.add("matched");
+    matches++;
+
+    resetTurn();
+
+    if (matches === totalPairs) {
+      setTimeout(showWin, 600);
     }
+  } else {
+    setTimeout(() => {
+      firstCard.classList.remove("flipped");
+      secondCard.classList.remove("flipped");
+      resetTurn();
+    }, 800);
   }
 }
 
-/* ===== WIN ===== */
-function win() {
-  if (!gameStarted) return;
-  gameStarted = false;
-
-  document.getElementById("finalMoves").textContent = moves;
-  document.getElementById("winModal").style.display = "flex";
-  startConfetti();
+/* =========================
+   RESET TURNO
+========================= */
+function resetTurn() {
+  [firstCard, secondCard] = [null, null];
+  lockBoard = false;
 }
 
-/* ===== RESET ===== */
-function backToMenu() {
-  stopConfetti();
-  gameStarted = false;
-  document.getElementById("game").style.display = "none";
-  document.getElementById("menu").style.display = "flex";
+/* =========================
+   GANAR
+========================= */
+function showWin() {
+  winText.textContent = `Lo lograste en ${attempts} intentos`;
+  modal.style.display = "flex";
 }
 
-/* ===== CONFETTI ===== */
-function startConfetti() {
-  confettiInterval = setInterval(() => {
-    const c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = Math.random() * 100 + "vw";
-    c.style.background = Math.random() > 0.5 ? "#d52b2b" : "#ffffff";
-    c.style.animationDuration = 2 + Math.random() * 2 + "s";
-    document.body.appendChild(c);
-    setTimeout(() => c.remove(), 4000);
-  }, 150);
+/* =========================
+   JUGAR OTRA VEZ
+========================= */
+function playAgain() {
+  modal.style.display = "none";
+  game.style.display = "none";
+  menu.style.display = "block";
+  resetState();
 }
 
-function stopConfetti() {
-  clearInterval(confettiInterval);
-  confettiInterval = null;
-  document.querySelectorAll(".confetti").forEach(c => c.remove());
+/* =========================
+   RESET GENERAL
+========================= */
+function resetState() {
+  board.innerHTML = "";
+  attempts = 0;
+  matches = 0;
+  firstCard = null;
+  secondCard = null;
+  lockBoard = false;
+  attemptsEl.textContent = "0";
 }
+
+/* =========================
+   BOTONES
+========================= */
+document.getElementById("easyBtn").onclick = () => startGame("easy");
+document.getElementById("normalBtn").onclick = () => startGame("normal");
+document.getElementById("hardBtn").onclick = () => startGame("hard");
+document.getElementById("playAgainBtn").onclick = playAgain;
 </script>
-
-</body>
-</html>
