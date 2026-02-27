@@ -97,73 +97,71 @@ const images = [
 ];
 
 const game = document.getElementById("game");
-const att = document.getElementById("att");
-const ok = document.getElementById("ok");
-const fail = document.getElementById("fail");
+const attemptsEl = document.getElementById("attempts");
 
-let first = null;
+let firstCard = null;
 let lock = false;
 let attempts = 0;
 
-function setup(){
-  game.innerHTML="";
-  attempts=0;
-  att.textContent=0;
-  let cards=[...images,...images].sort(()=>Math.random()-0.5);
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
 
-  cards.forEach(src=>{
-    const c=document.createElement("div");
-    c.className="card";
-    c.innerHTML=`
+function initGame() {
+  game.innerHTML = "";
+  attempts = 0;
+  attemptsEl.textContent = attempts;
+  firstCard = null;
+  lock = false;
+
+  const cards = shuffle([...images, ...images]);
+
+  cards.forEach(src => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
       <div class="inner">
         <div class="front"></div>
         <div class="back">
-          <img src="${src}">
+          <img src="${src}" alt="">
         </div>
-      </div>`;
-    c.onclick=()=>flip(c);
-    game.appendChild(c);
+      </div>
+    `;
+    card.addEventListener("click", () => flipCard(card));
+    game.appendChild(card);
   });
 }
 
-function flip(card){
-  if(lock||card.classList.contains("flipped")) return;
+function flipCard(card) {
+  if (lock || card.classList.contains("flipped")) return;
+
   card.classList.add("flipped");
 
-  if(!first){
-    first=card;
-    return;
-  }
+  if (!firstCard) {
+    firstCard = card;
+  } else {
+    lock = true;
+    attempts++;
+    attemptsEl.textContent = attempts;
 
-  lock=true;
-  attempts++;
-  att.textContent=attempts;
+    const img1 = firstCard.querySelector("img").src;
+    const img2 = card.querySelector("img").src;
 
-  const a=first.querySelector("img").src;
-  const b=card.querySelector("img").src;
-
-  if(a===b){
-    ok.currentTime=0;
-    ok.play();
-    first=null;
-    lock=false;
-  }else{
-    fail.currentTime=0;
-    fail.play();
-    setTimeout(()=>{
-      first.classList.remove("flipped");
-      card.classList.remove("flipped");
-      first=null;
-      lock=false;
-    },900);
+    if (img1 === img2) {
+      lock = false;
+      firstCard = null;
+    } else {
+      setTimeout(() => {
+        firstCard.classList.remove("flipped");
+        card.classList.remove("flipped");
+        firstCard = null;
+        lock = false;
+      }, 900);
+    }
   }
 }
 
-function reset(){setup();}
-function playAmb(){document.getElementById("amb").play();}
-
-setup();
+initGame();
 </script>
-
 </body>
 </html>
