@@ -2,106 +2,106 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Memorama Colgate-Palmolive</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memorama Colgate-Palmolive</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  text-align: center;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    text-align: center;
 }
 
 header {
-  background: #8b0000;
-  color: white;
-  padding: 20px;
-  font-size: 26px;
-  font-weight: bold;
+    background: #8b1d18;
+    color: white;
+    padding: 20px;
+    font-size: 28px;
+    font-weight: bold;
 }
 
-.controls button, .audio-btn {
-  background: #d32f2f;
-  color: white;
-  border: none;
-  padding: 12px 22px;
-  margin: 6px;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
+.controls {
+    margin: 20px;
 }
 
-.controls button:hover, .audio-btn:hover {
-  background: #b71c1c;
+button {
+    background: #d62f2f;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    margin: 5px;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
 }
 
-#audioPanel {
-  margin: 15px;
+button:hover {
+    background: #b92525;
 }
 
-#attempts {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 10px;
+#muteBtn {
+    background: #444;
 }
 
-.game {
-  display: grid;
-  gap: 15px;
-  justify-content: center;
-  padding-bottom: 40px;
+#stats {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+#game {
+    display: grid;
+    gap: 15px;
+    justify-content: center;
+    margin: 20px auto;
+    max-width: 90vw;
 }
 
 .card {
-  width: 120px;
-  height: 160px;
-  background: #d32f2f;
-  border-radius: 16px;
-  cursor: pointer;
-  overflow: hidden;
+    width: 120px;
+    height: 150px;
+    background: #d62f2f;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 .card img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: none;
-  background: white;
+    max-width: 85%;
+    max-height: 85%;
+    object-fit: contain;
+    display: none;
+}
+
+.card.flipped {
+    background: white;
 }
 
 .card.flipped img {
-  display: block;
+    display: block;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
 }
 
 .modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 280px;
 }
 
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  width: 300px;
-}
-
-.modal-content h2 {
-  color: #d32f2f;
-}
-
-.modal-content button {
-  margin-top: 20px;
-  background: #d32f2f;
-  color: white;
-  border: none;
-  padding: 12px 22px;
-  border-radius: 12px;
+.modal h2 {
+    color: #d62f2f;
 }
 </style>
 </head>
@@ -110,157 +110,134 @@ header {
 
 <header>Memorama Colgate-Palmolive</header>
 
-<div id="audioPanel">
-  <button class="audio-btn" onclick="enableAudio()">🔊 Activar sonido</button>
-</div>
-
 <div class="controls">
-  <button onclick="startGame(4)">Fácil</button>
-  <button onclick="startGame(6)">Medio</button>
-  <button onclick="startGame(8)">Difícil</button>
+    <button onclick="startGame('easy')">Fácil</button>
+    <button onclick="startGame('medium')">Medio</button>
+    <button onclick="startGame('hard')">Difícil</button>
+    <button id="muteBtn" onclick="toggleMute()">🔊</button>
 </div>
 
-<div id="attempts">Intentos: 0</div>
-<div id="game" class="game"></div>
+<div id="stats">Intentos: 0</div>
+<div id="game"></div>
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <h2>¡Felicidades!</h2>
-    <p id="finalText"></p>
-    <button onclick="resetGame()">Jugar otra vez</button>
-  </div>
+<div class="overlay" id="winOverlay">
+    <div class="modal">
+        <h2>¡Felicidades!</h2>
+        <p id="winText"></p>
+        <button onclick="restart()">Jugar otra vez</button>
+    </div>
 </div>
+
+<!-- AUDIOS -->
+<audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
+<audio id="flipSound" src="audio/flip.mp3"></audio>
+<audio id="matchSound" src="audio/match.mp3"></audio>
+<audio id="winSound" src="audio/win.mp3"></audio>
 
 <script>
-/* ========= AUDIO ========= */
-let audioUnlocked = false;
-
-const flipSound = new Audio("error.wav");
-const matchSound = new Audio("feria.wav");
-const winSound = new Audio("feria.wav");
-const ambientSound = new Audio("feria.wav");
-
-ambientSound.loop = true;
-ambientSound.volume = 0.25;
-
-function enableAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-
-  flipSound.play().then(() => {
-    flipSound.pause();
-    flipSound.currentTime = 0;
-  });
-
-  ambientSound.play();
-  document.getElementById("audioPanel").style.display = "none";
-}
-
-/* ========= JUEGO ========= */
 const images = [
-  "img/img1.png","img/img2.png","img/img3.png","img/img4.png",
-  "img/img5.png","img/img6.png","img/img7.png","img/img8.png"
+    "img/img1.png","img/img2.png","img/img3.png","img/img4.png",
+    "img/img5.png","img/img6.png","img/img7.png","img/img8.png"
 ];
 
-let first = null;
-let second = null;
+let firstCard = null;
 let lock = false;
 let attempts = 0;
 let matches = 0;
 let totalPairs = 0;
+let muted = false;
 
-function startGame(pairs) {
-  if (!audioUnlocked) return alert("Activa el sonido primero 🔊");
+const bgMusic = document.getElementById("bgMusic");
+const flipSound = document.getElementById("flipSound");
+const matchSound = document.getElementById("matchSound");
+const winSound = document.getElementById("winSound");
 
-  document.getElementById("modal").style.display = "none";
-  document.getElementById("game").innerHTML = "";
+function unlockAudio() {
+    bgMusic.volume = 0.4;
+    bgMusic.play().catch(()=>{});
+    document.removeEventListener("click", unlockAudio);
+}
+document.addEventListener("click", unlockAudio);
 
-  attempts = 0;
-  matches = 0;
-  first = null;
-  second = null;
-  lock = false;
-  totalPairs = pairs;
+function toggleMute() {
+    muted = !muted;
+    [bgMusic, flipSound, matchSound, winSound].forEach(a => a.muted = muted);
+    document.getElementById("muteBtn").innerText = muted ? "🔇" : "🔊";
+}
 
-  document.getElementById("attempts").textContent = "Intentos: 0";
+function startGame(level) {
+    const game = document.getElementById("game");
+    game.innerHTML = "";
+    attempts = 0;
+    matches = 0;
+    document.getElementById("stats").innerText = "Intentos: 0";
+    document.getElementById("winOverlay").style.display = "none";
 
-  let cards = images.slice(0, pairs);
-  cards = [...cards, ...cards].sort(() => 0.5 - Math.random());
+    let cols, rows;
+    if (level === "easy") { cols = 2; rows = 3; }
+    if (level === "medium") { cols = 3; rows = 4; }
+    if (level === "hard") { cols = 4; rows = 4; }
 
-  const game = document.getElementById("game");
-  game.style.gridTemplateColumns =
-    pairs === 4 ? "repeat(2,120px)" :
-    pairs === 6 ? "repeat(3,120px)" :
-    "repeat(4,120px)";
+    game.style.gridTemplateColumns = `repeat(${cols}, 120px)`;
 
-  cards.forEach(src => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.dataset.img = src;
+    totalPairs = (cols * rows) / 2;
+    const selected = images.slice(0, totalPairs);
+    const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
 
-    const img = document.createElement("img");
-    img.src = src;
-
-    card.appendChild(img);
-    card.onclick = () => flip(card);
-    game.appendChild(card);
-  });
+    cards.forEach(src => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<img src="${src}">`;
+        card.onclick = () => flip(card);
+        game.appendChild(card);
+    });
 }
 
 function flip(card) {
-  if (lock || card.classList.contains("flipped")) return;
+    if (lock || card.classList.contains("flipped")) return;
 
-  flipSound.currentTime = 0;
-  flipSound.play();
+    flipSound.currentTime = 0;
+    flipSound.play();
 
-  card.classList.add("flipped");
+    card.classList.add("flipped");
 
-  if (!first) first = card;
-  else {
-    second = card;
+    if (!firstCard) {
+        firstCard = card;
+        return;
+    }
+
     attempts++;
-    document.getElementById("attempts").textContent = "Intentos: " + attempts;
-    check();
-  }
+    document.getElementById("stats").innerText = "Intentos: " + attempts;
+
+    if (firstCard.innerHTML === card.innerHTML) {
+        matchSound.currentTime = 0;
+        matchSound.play();
+        matches++;
+        firstCard = null;
+
+        if (matches === totalPairs) {
+            winSound.play();
+            bgMusic.pause();
+            document.getElementById("winText").innerText =
+                `Lo lograste en ${attempts} intentos`;
+            document.getElementById("winOverlay").style.display = "flex";
+        }
+    } else {
+        lock = true;
+        setTimeout(() => {
+            firstCard.classList.remove("flipped");
+            card.classList.remove("flipped");
+            firstCard = null;
+            lock = false;
+        }, 800);
+    }
 }
 
-function check() {
-  lock = true;
-  if (first.dataset.img === second.dataset.img) {
-    matchSound.currentTime = 0;
-    matchSound.play();
-    matches++;
-    resetSel();
-    if (matches === totalPairs) setTimeout(win, 600);
-  } else {
-    setTimeout(() => {
-      first.classList.remove("flipped");
-      second.classList.remove("flipped");
-      resetSel();
-    }, 800);
-  }
-}
-
-function resetSel() {
-  first = null;
-  second = null;
-  lock = false;
-}
-
-function win() {
-  ambientSound.pause();
-  winSound.play();
-
-  document.getElementById("finalText").textContent =
-    `Lo lograste en ${attempts} intentos`;
-  document.getElementById("modal").style.display = "flex";
-}
-
-function resetGame() {
-  document.getElementById("modal").style.display = "none";
-  document.getElementById("game").innerHTML = "";
-  document.getElementById("attempts").textContent = "Intentos: 0";
-  ambientSound.play();
+function restart() {
+    document.getElementById("winOverlay").style.display = "none";
+    bgMusic.currentTime = 0;
+    bgMusic.play();
+    document.getElementById("game").innerHTML = "";
 }
 </script>
 
