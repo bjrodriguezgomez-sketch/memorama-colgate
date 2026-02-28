@@ -46,7 +46,7 @@ button {
 .game {
   display: grid;
   gap: 12px;
-  max-width: 420px;
+  max-width: 440px;
   margin: 0 auto 40px;
   padding: 0 12px;
 }
@@ -65,7 +65,7 @@ button {
   width: 90%;
   height: 90%;
   object-fit: contain;
-  display: none;
+  opacity: 0;
 }
 
 .card.flipped {
@@ -73,18 +73,18 @@ button {
 }
 
 .card.flipped img {
-  display: block;
+  opacity: 1;
 }
 
-/* VICTORIA */
+/* Pantalla victoria */
 #winScreen {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.75);
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 1000;
 }
 
 #winBox {
@@ -115,7 +115,6 @@ button {
 
 <div class="game" id="gameBoard"></div>
 
-<!-- VICTORIA -->
 <div id="winScreen">
   <div id="winBox">
     <h2>🎉 ¡Felicidades!</h2>
@@ -131,20 +130,24 @@ button {
 <audio id="winSound" src="audio/win.mp3"></audio>
 
 <script>
+/* TODAS las imágenes disponibles (8) */
 const allImages = [
-  'img/accion.png',
-  'img/colgate.png',
-  'img/palmolive.png',
-  'img/softsoap.png'
+  'img/img1.png',
+  'img/img2.png',
+  'img/img3.png',
+  'img/img4.png',
+  'img/img5.png',
+  'img/img6.png',
+  'img/img7.png',
+  'img/img8.png'
 ];
 
-let cards = [];
 let flipped = [];
 let moves = 0;
 let totalCards = 0;
 let gameStarted = false;
 let soundEnabled = false;
-let confettiRunning = false;
+let confettiDone = false;
 
 const board = document.getElementById('gameBoard');
 const movesEl = document.getElementById('moves');
@@ -156,6 +159,7 @@ const matchSound = document.getElementById('matchSound');
 const winSound = document.getElementById('winSound');
 const soundBtn = document.getElementById('soundBtn');
 
+/* Sonido */
 soundBtn.onclick = () => {
   soundEnabled = !soundEnabled;
   if (soundEnabled) {
@@ -171,14 +175,15 @@ soundBtn.onclick = () => {
 function startGame(pairs) {
   gameStarted = true;
   board.innerHTML = '';
+  flipped = [];
   moves = 0;
   movesEl.textContent = moves;
-  flipped = [];
+  confettiDone = false;
   winScreen.style.display = 'none';
-  confettiRunning = false;
 
+  /* Tomar SOLO las necesarias */
   const selected = allImages.slice(0, pairs);
-  cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
+  const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
   totalCards = cards.length;
 
   const cols = pairs === 2 ? 2 : pairs === 3 ? 3 : 4;
@@ -199,9 +204,7 @@ function startGame(pairs) {
 }
 
 function flipCard(card) {
-  if (!gameStarted) return;
-  if (card.classList.contains('flipped')) return;
-  if (flipped.length === 2) return;
+  if (!gameStarted || card.classList.contains('flipped') || flipped.length === 2) return;
 
   card.classList.add('flipped');
   if (soundEnabled) flipSound.play();
@@ -228,8 +231,8 @@ function flipCard(card) {
 }
 
 function winGame() {
-  if (confettiRunning) return;
-  confettiRunning = true;
+  if (confettiDone) return;
+  confettiDone = true;
 
   if (soundEnabled) winSound.play();
   winScreen.style.display = 'flex';
@@ -237,7 +240,7 @@ function winGame() {
   const end = Date.now() + 1800;
   (function frame() {
     confetti({
-      particleCount: 5,
+      particleCount: 6,
       spread: 70,
       colors: ['#ffffff', '#d32f2f'],
       origin: { y: 0.6 }
