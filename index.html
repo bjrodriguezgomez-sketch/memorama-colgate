@@ -75,6 +75,23 @@ button {
 .card.flipped img {
   display: block;
 }
+
+/* VICTORIA */
+#winScreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+#winBox {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+}
 </style>
 </head>
 
@@ -98,6 +115,15 @@ button {
 
 <div class="game" id="gameBoard"></div>
 
+<!-- VICTORIA -->
+<div id="winScreen">
+  <div id="winBox">
+    <h2>🎉 ¡Felicidades!</h2>
+    <p>Completaste el memorama</p>
+    <button onclick="resetGame()">Jugar otra vez</button>
+  </div>
+</div>
+
 <!-- AUDIOS -->
 <audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
 <audio id="flipSound" src="audio/flip.mp3"></audio>
@@ -116,12 +142,13 @@ let cards = [];
 let flipped = [];
 let moves = 0;
 let totalCards = 0;
-let soundEnabled = false;
 let gameStarted = false;
-let confettiActive = false;
+let soundEnabled = false;
+let confettiRunning = false;
 
 const board = document.getElementById('gameBoard');
 const movesEl = document.getElementById('moves');
+const winScreen = document.getElementById('winScreen');
 
 const bgMusic = document.getElementById('bgMusic');
 const flipSound = document.getElementById('flipSound');
@@ -147,13 +174,14 @@ function startGame(pairs) {
   moves = 0;
   movesEl.textContent = moves;
   flipped = [];
-  confettiActive = false;
+  winScreen.style.display = 'none';
+  confettiRunning = false;
 
-  let selected = allImages.slice(0, pairs);
+  const selected = allImages.slice(0, pairs);
   cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
   totalCards = cards.length;
 
-  let cols = pairs === 2 ? 2 : pairs === 3 ? 3 : 4;
+  const cols = pairs === 2 ? 2 : pairs === 3 ? 3 : 4;
   board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
   cards.forEach(img => {
@@ -177,7 +205,6 @@ function flipCard(card) {
 
   card.classList.add('flipped');
   if (soundEnabled) flipSound.play();
-
   flipped.push(card);
 
   if (flipped.length === 2) {
@@ -201,23 +228,28 @@ function flipCard(card) {
 }
 
 function winGame() {
-  if (confettiActive) return;
-  confettiActive = true;
+  if (confettiRunning) return;
+  confettiRunning = true;
 
   if (soundEnabled) winSound.play();
+  winScreen.style.display = 'flex';
 
-  const duration = 2000;
-  const end = Date.now() + duration;
-
+  const end = Date.now() + 1800;
   (function frame() {
     confetti({
-      particleCount: 6,
+      particleCount: 5,
       spread: 70,
       colors: ['#ffffff', '#d32f2f'],
       origin: { y: 0.6 }
     });
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
+}
+
+function resetGame() {
+  board.innerHTML = '';
+  gameStarted = false;
+  winScreen.style.display = 'none';
 }
 </script>
 
