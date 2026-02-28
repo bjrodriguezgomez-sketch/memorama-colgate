@@ -1,109 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Memorama Colgate-Palmolive</title>
+  <meta charset="UTF-8">
+  <title>Memorama Colgate-Palmolive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    text-align: center;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+    }
 
-header {
-    background: #8b1d18;
-    color: white;
-    padding: 20px;
-    font-size: 28px;
-    font-weight: bold;
-}
+    header {
+      background: #8B1E1E;
+      color: white;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+    }
 
-.controls {
-    margin: 20px;
-}
+    .controls {
+      margin: 20px 0;
+    }
 
-button {
-    background: #d62f2f;
-    color: white;
-    border: none;
-    padding: 12px 22px;
-    margin: 5px;
-    border-radius: 12px;
-    font-size: 16px;
-    cursor: pointer;
-}
+    button {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin: 5px;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-button:hover {
-    background: #b92525;
-}
+    button:hover {
+      opacity: 0.9;
+    }
 
-#muteBtn {
-    background: #444;
-}
+    .stats {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
 
-#stats {
-    font-size: 20px;
-    margin-bottom: 10px;
-}
+    .game {
+      display: grid;
+      grid-template-columns: repeat(3, 120px);
+      gap: 15px;
+      justify-content: center;
+    }
 
-#game {
-    display: grid;
-    gap: 15px;
-    justify-content: center;
-    margin: 20px auto;
-    max-width: 90vw;
-}
+    .card {
+      width: 120px;
+      height: 160px;
+      background: #d32f2f;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
 
-.card {
-    width: 120px;
-    height: 150px;
-    background: #d62f2f;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
+    .card img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      display: none;
+    }
 
-.card img {
-    max-width: 85%;
-    max-height: 85%;
-    object-fit: contain;
-    display: none;
-}
+    .card.flipped {
+      background: white;
+    }
 
-.card.flipped {
-    background: white;
-}
-
-.card.flipped img {
-    display: block;
-}
-
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-
-.modal {
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    width: 280px;
-}
-
-.modal h2 {
-    color: #d62f2f;
-}
-</style>
+    .card.flipped img {
+      display: block;
+    }
+  </style>
 </head>
 
 <body>
@@ -111,22 +85,20 @@ button:hover {
 <header>Memorama Colgate-Palmolive</header>
 
 <div class="controls">
-    <button onclick="startGame('easy')">Fácil</button>
-    <button onclick="startGame('medium')">Medio</button>
-    <button onclick="startGame('hard')">Difícil</button>
-    <button id="muteBtn" onclick="toggleMute()">🔊</button>
+  <button id="soundBtn">🔊 Activar sonido</button>
 </div>
 
-<div id="stats">Intentos: 0</div>
-<div id="game"></div>
-
-<div class="overlay" id="winOverlay">
-    <div class="modal">
-        <h2>¡Felicidades!</h2>
-        <p id="winText"></p>
-        <button onclick="restart()">Jugar otra vez</button>
-    </div>
+<div class="controls">
+  <button onclick="startGame()">Fácil</button>
+  <button onclick="startGame()">Medio</button>
+  <button onclick="startGame()">Difícil</button>
 </div>
+
+<div class="stats">
+  Intentos: <span id="moves">0</span>
+</div>
+
+<div class="game" id="gameBoard"></div>
 
 <!-- AUDIOS -->
 <audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
@@ -135,110 +107,98 @@ button:hover {
 <audio id="winSound" src="audio/win.mp3"></audio>
 
 <script>
-const images = [
-    "img/img1.png","img/img2.png","img/img3.png","img/img4.png",
-    "img/img5.png","img/img6.png","img/img7.png","img/img8.png"
-];
+  const images = [
+    'img/accion.png',
+    'img/colgate.png',
+    'img/palmolive.png'
+  ];
 
-let firstCard = null;
-let lock = false;
-let attempts = 0;
-let matches = 0;
-let totalPairs = 0;
-let muted = false;
+  let cards = [];
+  let flipped = [];
+  let moves = 0;
+  let soundEnabled = false;
 
-const bgMusic = document.getElementById("bgMusic");
-const flipSound = document.getElementById("flipSound");
-const matchSound = document.getElementById("matchSound");
-const winSound = document.getElementById("winSound");
+  const board = document.getElementById('gameBoard');
+  const movesEl = document.getElementById('moves');
+  const bgMusic = document.getElementById('bgMusic');
+  const flipSound = document.getElementById('flipSound');
+  const matchSound = document.getElementById('matchSound');
+  const winSound = document.getElementById('winSound');
+  const soundBtn = document.getElementById('soundBtn');
 
-function unlockAudio() {
-    bgMusic.volume = 0.4;
-    bgMusic.play().catch(()=>{});
-    document.removeEventListener("click", unlockAudio);
-}
-document.addEventListener("click", unlockAudio);
-
-function toggleMute() {
-    muted = !muted;
-    [bgMusic, flipSound, matchSound, winSound].forEach(a => a.muted = muted);
-    document.getElementById("muteBtn").innerText = muted ? "🔇" : "🔊";
-}
-
-function startGame(level) {
-    const game = document.getElementById("game");
-    game.innerHTML = "";
-    attempts = 0;
-    matches = 0;
-    document.getElementById("stats").innerText = "Intentos: 0";
-    document.getElementById("winOverlay").style.display = "none";
-
-    let cols, rows;
-    if (level === "easy") { cols = 2; rows = 3; }
-    if (level === "medium") { cols = 3; rows = 4; }
-    if (level === "hard") { cols = 4; rows = 4; }
-
-    game.style.gridTemplateColumns = `repeat(${cols}, 120px)`;
-
-    totalPairs = (cols * rows) / 2;
-    const selected = images.slice(0, totalPairs);
-    const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
-
-    cards.forEach(src => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<img src="${src}">`;
-        card.onclick = () => flip(card);
-        game.appendChild(card);
-    });
-}
-
-function flip(card) {
-    if (lock || card.classList.contains("flipped")) return;
-
-    flipSound.currentTime = 0;
-    flipSound.play();
-
-    card.classList.add("flipped");
-
-    if (!firstCard) {
-        firstCard = card;
-        return;
-    }
-
-    attempts++;
-    document.getElementById("stats").innerText = "Intentos: " + attempts;
-
-    if (firstCard.innerHTML === card.innerHTML) {
-        matchSound.currentTime = 0;
-        matchSound.play();
-        matches++;
-        firstCard = null;
-
-        if (matches === totalPairs) {
-            winSound.play();
-            bgMusic.pause();
-            document.getElementById("winText").innerText =
-                `Lo lograste en ${attempts} intentos`;
-            document.getElementById("winOverlay").style.display = "flex";
-        }
+  soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    if (soundEnabled) {
+      bgMusic.volume = 0.4;
+      bgMusic.play();
+      soundBtn.textContent = '🔇 Silenciar sonido';
     } else {
-        lock = true;
-        setTimeout(() => {
-            firstCard.classList.remove("flipped");
-            card.classList.remove("flipped");
-            firstCard = null;
-            lock = false;
-        }, 800);
+      bgMusic.pause();
+      soundBtn.textContent = '🔊 Activar sonido';
     }
-}
+  });
 
-function restart() {
-    document.getElementById("winOverlay").style.display = "none";
-    bgMusic.currentTime = 0;
-    bgMusic.play();
-    document.getElementById("game").innerHTML = "";
-}
+  function startGame() {
+    board.innerHTML = '';
+    moves = 0;
+    movesEl.textContent = moves;
+    flipped = [];
+
+    cards = [...images, ...images].sort(() => Math.random() - 0.5);
+
+    cards.forEach(img => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.image = img;
+
+      const image = document.createElement('img');
+      image.src = img;
+
+      card.appendChild(image);
+      card.addEventListener('click', () => flipCard(card));
+
+      board.appendChild(card);
+    });
+  }
+
+  function flipCard(card) {
+    if (card.classList.contains('flipped') || flipped.length === 2) return;
+
+    card.classList.add('flipped');
+    if (soundEnabled) {
+      flipSound.currentTime = 0;
+      flipSound.play();
+    }
+
+    flipped.push(card);
+
+    if (flipped.length === 2) {
+      moves++;
+      movesEl.textContent = moves;
+
+      if (flipped[0].dataset.image === flipped[1].dataset.image) {
+        if (soundEnabled) {
+          matchSound.currentTime = 0;
+          matchSound.play();
+        }
+        flipped = [];
+
+        if (document.querySelectorAll('.card.flipped').length === cards.length) {
+          if (soundEnabled) {
+            winSound.play();
+          }
+          setTimeout(() => alert('🎉 ¡Ganaste!'), 300);
+        }
+      } else {
+        setTimeout(() => {
+          flipped.forEach(c => c.classList.remove('flipped'));
+          flipped = [];
+        }, 800);
+      }
+    }
+  }
+
+  startGame();
 </script>
 
 </body>
