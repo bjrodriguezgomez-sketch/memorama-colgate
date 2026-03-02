@@ -20,44 +20,62 @@ html, body {
 /* HEADER */
 header {
   background: #8B1E1E;
-  height: 90px;
+  height: 100px;
   padding: 0 16px;
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   align-items: center;
 }
 
 header img.logo {
-  height: 150px;
-  max-height: 90px;
+  height: 200px;
+  max-height: 100px;
 }
 
-header h1 {
-  color: white;
-  font-size: 22px;
-  margin: 0;
-  text-align: center;
+/* SECCIONES */
+#menuScreen,
+#gameScreen {
+  display: none;
+  height: calc(100vh - 100px);
+}
+
+#menuScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#gameScreen {
+  display: flex;
+  flex-direction: column;
 }
 
 /* CONTROLES */
 .controls {
-  margin: 8px 0;
+  margin: 10px 0;
 }
 
 button {
   background: #d32f2f;
   color: white;
   border: none;
-  padding: 10px 16px;
-  margin: 4px;
+  padding: 12px 18px;
+  margin: 6px;
   border-radius: 14px;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
 }
 
+/* TOP BAR GAME */
+.gameTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+}
+
 .stats {
-  font-size: 16px;
-  margin-bottom: 6px;
+  font-size: 18px;
 }
 
 /* TABLERO */
@@ -67,7 +85,7 @@ button {
   max-width: 460px;
   margin: 0 auto;
   padding: 0 12px;
-  height: calc(100vh - 260px);
+  flex: 1;
 }
 
 /* CARTAS */
@@ -80,10 +98,7 @@ button {
 }
 
 @keyframes enter {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .card-inner {
@@ -156,29 +171,31 @@ button {
 
 <header>
   <img src="img/logo.png" class="logo" alt="Colgate">
-  <h1>Colgate-Palmolive Memory</h1>
 </header>
 
-<div class="controls">
-  <button id="soundBtn">🔊 Activar sonido</button>
+<!-- MENÚ -->
+<div id="menuScreen">
+  <h2>Colgate-Palmolive Memory</h2>
+  <div class="controls">
+    <button onclick="startGame(2)">Fácil 2x2</button>
+    <button onclick="startGame(3)">Medio 2x3</button>
+    <button onclick="startGame(8)">Difícil 4x4</button>
+  </div>
 </div>
 
-<div class="controls">
-  <button onclick="startGame(2)">Fácil 2x2</button>
-  <button onclick="startGame(3)">Medio 2x3</button>
-  <button onclick="startGame(8)">Difícil 4x4</button>
+<!-- JUEGO -->
+<div id="gameScreen">
+  <div class="gameTop">
+    <button onclick="goHome()">🏠 Home</button>
+    <div class="stats">Intentos: <span id="moves">0</span></div>
+  </div>
+  <div class="game" id="gameBoard"></div>
 </div>
-
-<div class="stats">
-  Intentos: <span id="moves">0</span>
-</div>
-
-<div class="game" id="gameBoard"></div>
 
 <div id="winScreen">
   <div id="winBox">
     <h2>🎉 ¡Felicidades!</h2>
-    <button onclick="goToMenu()">Volver al menú</button>
+    <button onclick="goHome()">Volver al menú</button>
   </div>
 </div>
 
@@ -197,10 +214,10 @@ const allImages = [
 let flipped = [];
 let moves = 0;
 let totalCards = 0;
-let gameStarted = false;
-let soundEnabled = false;
-let confettiTimer = null;
+let soundEnabled = true;
 
+const menuScreen = document.getElementById('menuScreen');
+const gameScreen = document.getElementById('gameScreen');
 const board = document.getElementById('gameBoard');
 const movesEl = document.getElementById('moves');
 const winScreen = document.getElementById('winScreen');
@@ -209,27 +226,22 @@ const bgMusic = document.getElementById('bgMusic');
 const flipSound = document.getElementById('flipSound');
 const matchSound = document.getElementById('matchSound');
 const winSound = document.getElementById('winSound');
-const soundBtn = document.getElementById('soundBtn');
 
-soundBtn.onclick = () => {
-  soundEnabled = !soundEnabled;
-  soundBtn.textContent = soundEnabled ? '🔇 Silenciar sonido' : '🔊 Activar sonido';
-  if (!soundEnabled) bgMusic.pause();
-};
+menuScreen.style.display = 'flex';
 
 function startGame(pairs) {
-  gameStarted = true;
+  menuScreen.style.display = 'none';
+  gameScreen.style.display = 'flex';
+  winScreen.style.display = 'none';
+
   board.innerHTML = '';
   flipped = [];
   moves = 0;
   movesEl.textContent = 0;
-  winScreen.style.display = 'none';
 
-  if (soundEnabled) {
-    bgMusic.currentTime = 0;
-    bgMusic.volume = 0.4;
-    bgMusic.play();
-  }
+  bgMusic.currentTime = 0;
+  bgMusic.volume = 0.4;
+  bgMusic.play();
 
   const selected = allImages.slice(0, pairs);
   const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
@@ -257,10 +269,10 @@ function startGame(pairs) {
 }
 
 function flipCard(card) {
-  if (!gameStarted || card.classList.contains('flipped') || flipped.length === 2) return;
+  if (card.classList.contains('flipped') || flipped.length === 2) return;
 
   card.classList.add('flipped');
-  if (soundEnabled) flipSound.play();
+  flipSound.play();
   flipped.push(card);
 
   if (flipped.length === 2) {
@@ -268,7 +280,7 @@ function flipCard(card) {
     movesEl.textContent = moves;
 
     if (flipped[0].dataset.image === flipped[1].dataset.image) {
-      if (soundEnabled) matchSound.play();
+      matchSound.play();
       flipped = [];
 
       if (document.querySelectorAll('.card.flipped').length === totalCards) {
@@ -285,7 +297,7 @@ function flipCard(card) {
 
 function winGame() {
   bgMusic.pause();
-  if (soundEnabled) winSound.play();
+  winSound.play();
   winScreen.style.display = 'flex';
 
   const end = Date.now() + 1800;
@@ -300,13 +312,16 @@ function winGame() {
   })();
 }
 
-function goToMenu() {
+function goHome() {
   board.innerHTML = '';
-  gameStarted = false;
-  winScreen.style.display = 'none';
+  flipped = [];
+  moves = 0;
   movesEl.textContent = 0;
   bgMusic.pause();
   winSound.pause();
+  winScreen.style.display = 'none';
+  gameScreen.style.display = 'none';
+  menuScreen.style.display = 'flex';
 }
 </script>
 
