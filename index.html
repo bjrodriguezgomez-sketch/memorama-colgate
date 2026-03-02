@@ -17,12 +17,14 @@ body {
 
 header {
   background: #8B1E1E;
-  color: white;
-  padding: 16px;
-  font-size: 24px;
-  font-weight: bold;
+  padding: 14px;
 }
 
+header img {
+  height: 42px;
+}
+
+/* CONTROLES */
 .controls {
   margin: 12px 0;
 }
@@ -43,6 +45,7 @@ button {
   margin-bottom: 10px;
 }
 
+/* TABLERO */
 .game {
   display: grid;
   gap: 12px;
@@ -51,32 +54,57 @@ button {
   padding: 0 12px;
 }
 
+/* CARTA */
 .card {
   aspect-ratio: 3 / 4;
-  background: #d32f2f;
+  perspective: 1000px;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
   border-radius: 16px;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  position: relative;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+/* CARA FRONTAL */
+.card-front,
+.card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
 }
 
-.card img {
+/* ROJO COLGATE */
+.card-front {
+  background: #d32f2f;
+}
+
+/* REVERSO */
+.card-back {
+  background: white;
+  transform: rotateY(180deg);
+  border: 4px solid #d32f2f;
+}
+
+.card-back img {
   width: 90%;
   height: 90%;
   object-fit: contain;
-  opacity: 0;
 }
 
-.card.flipped {
-  background: white;
-}
-
-.card.flipped img {
-  opacity: 1;
-}
-
-/* Pantalla victoria */
+/* VICTORIA */
 #winScreen {
   position: fixed;
   inset: 0;
@@ -97,7 +125,10 @@ button {
 
 <body>
 
-<header>Memorama Colgate-Palmolive</header>
+<header>
+  <!-- Logo Colgate actualizado -->
+  <img src="https://upload.wikimedia.org/wikipedia/commons/2/2e/Colgate_logo_2021.svg" alt="Colgate">
+</header>
 
 <div class="controls">
   <button id="soundBtn">🔊 Activar sonido</button>
@@ -118,7 +149,6 @@ button {
 <div id="winScreen">
   <div id="winBox">
     <h2>🎉 ¡Felicidades!</h2>
-    <p>Completaste el memorama</p>
     <button onclick="goToMenu()">Volver al menú</button>
   </div>
 </div>
@@ -130,16 +160,9 @@ button {
 <audio id="winSound" src="audio/win.mp3"></audio>
 
 <script>
-/* NO SE ASUME CANTIDAD, SOLO SE USAN */
 const allImages = [
-  'img/img1.png',
-  'img/img2.png',
-  'img/img3.png',
-  'img/img4.png',
-  'img/img5.png',
-  'img/img6.png',
-  'img/img7.png',
-  'img/img8.png'
+  'img/img1.png','img/img2.png','img/img3.png','img/img4.png',
+  'img/img5.png','img/img6.png','img/img7.png','img/img8.png'
 ];
 
 let flipped = [];
@@ -159,10 +182,8 @@ const matchSound = document.getElementById('matchSound');
 const winSound = document.getElementById('winSound');
 const soundBtn = document.getElementById('soundBtn');
 
-/* SONIDO */
 soundBtn.onclick = () => {
   soundEnabled = !soundEnabled;
-
   if (soundEnabled && gameStarted) {
     bgMusic.volume = 0.4;
     bgMusic.play();
@@ -184,7 +205,6 @@ function startGame(pairs) {
 
   if (soundEnabled) {
     bgMusic.currentTime = 0;
-    bgMusic.volume = 0.4;
     bgMusic.play();
   }
 
@@ -200,10 +220,13 @@ function startGame(pairs) {
     card.className = 'card';
     card.dataset.image = img;
 
-    const image = document.createElement('img');
-    image.src = img;
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-front"></div>
+        <div class="card-back"><img src="${img}"></div>
+      </div>
+    `;
 
-    card.appendChild(image);
     card.onclick = () => flipCard(card);
     board.appendChild(card);
   });
@@ -241,8 +264,6 @@ function winGame() {
   confettiDone = true;
 
   bgMusic.pause();
-  bgMusic.currentTime = 0;
-
   if (soundEnabled) winSound.play();
   winScreen.style.display = 'flex';
 
