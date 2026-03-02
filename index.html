@@ -19,13 +19,11 @@ html, body {
 
 /* ================= HEADER ================= */
 header {
-  position: relative;
   background: #8B1E1E;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
 }
 
 header h1 {
@@ -35,15 +33,32 @@ header h1 {
   font-weight: bold;
 }
 
-/* ================= LOGO FLOTANTE ================= */
+/* ================= LOGO ================= */
 .logo-floating {
   position: fixed;
-  top: -35px;              /* sobresale del header */
+  top: -90px;
   left: 16px;
-  width: 200px;
-  height: auto;
-  z-index: 9999;           /* SIEMPRE encima */
+  width: 400px;
+  z-index: 9999;
   pointer-events: none;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 14px 22px;
+  margin: 8px;
+  border-radius: 16px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
 }
 
 /* ================= SCREENS ================= */
@@ -62,18 +77,6 @@ header h1 {
 #gameScreen {
   display: flex;
   flex-direction: column;
-}
-
-/* ================= BUTTONS ================= */
-.controls button {
-  background: #d32f2f;
-  color: white;
-  border: none;
-  padding: 14px 20px;
-  margin: 8px;
-  border-radius: 16px;
-  font-size: 16px;
-  cursor: pointer;
 }
 
 /* ================= TOP BAR ================= */
@@ -103,7 +106,7 @@ header h1 {
   perspective: 1000px;
   opacity: 0;
   transform: translateY(20px);
-  animation: appear 0.4s ease forwards;
+  animation: appear .4s ease forwards;
 }
 
 @keyframes appear {
@@ -116,20 +119,18 @@ header h1 {
   border-radius: 16px;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+  transition: transform .35s ease, box-shadow .35s ease;
+  box-shadow: 0 8px 18px rgba(0,0,0,.25);
 }
 
-/* 🔥 HOVER (DESKTOP) */
 .card:hover .card-inner {
   transform: translateY(-8px);
-  box-shadow: 0 18px 32px rgba(0,0,0,0.35);
+  box-shadow: 0 18px 32px rgba(0,0,0,.35);
 }
 
-/* 🔥 ACTIVE (MÓVIL / CLICK) */
 .card:active .card-inner {
   transform: translateY(-10px);
-  box-shadow: 0 22px 38px rgba(0,0,0,0.45);
+  box-shadow: 0 22px 38px rgba(0,0,0,.45);
 }
 
 .card.flipped .card-inner {
@@ -167,7 +168,7 @@ header h1 {
 #winScreen {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,.7);
   display: none;
   align-items: center;
   justify-content: center;
@@ -176,7 +177,7 @@ header h1 {
 
 #winBox {
   background: white;
-  padding: 30px;
+  padding: 32px;
   border-radius: 20px;
   text-align: center;
 }
@@ -185,7 +186,6 @@ header h1 {
 
 <body>
 
-<!-- LOGO FUERA DEL HEADER -->
 <img src="img/logo.png" class="logo-floating" alt="Colgate Logo">
 
 <header>
@@ -194,7 +194,7 @@ header h1 {
 
 <!-- MENU -->
 <div id="menuScreen">
-  <div class="controls">
+  <div>
     <button onclick="startGame(2)">Fácil 2x2</button>
     <button onclick="startGame(3)">Medio 2x3</button>
     <button onclick="startGame(8)">Difícil 4x4</button>
