@@ -20,22 +20,32 @@ html, body {
 /* HEADER */
 header {
   background: #8B1E1E;
-  height: 100px;
+  height: 50px;
   padding: 0 16px;
   display: flex;
   align-items: center;
+  position: relative;
+  overflow: hidden;
 }
 
 header img.logo {
   height: 200px;
-  max-height: 100px;
+  position: absolute;
+  left: 16px;
 }
 
-/* SECCIONES */
+header h1 {
+  margin: 0 auto;
+  font-size: 18px;
+  color: white;
+  font-weight: bold;
+}
+
+/* SCREENS */
 #menuScreen,
 #gameScreen {
   display: none;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 50px);
 }
 
 #menuScreen {
@@ -50,7 +60,7 @@ header img.logo {
   flex-direction: column;
 }
 
-/* CONTROLES */
+/* BUTTONS */
 .controls {
   margin: 10px 0;
 }
@@ -66,7 +76,7 @@ button {
   cursor: pointer;
 }
 
-/* TOP BAR GAME */
+/* TOP BAR */
 .gameTop {
   display: flex;
   justify-content: space-between;
@@ -78,7 +88,7 @@ button {
   font-size: 18px;
 }
 
-/* TABLERO */
+/* BOARD */
 .game {
   display: grid;
   gap: 12px;
@@ -88,7 +98,7 @@ button {
   flex: 1;
 }
 
-/* CARTAS */
+/* CARDS */
 .card {
   aspect-ratio: 3 / 4;
   perspective: 1000px;
@@ -148,7 +158,7 @@ button {
   object-fit: contain;
 }
 
-/* VICTORIA */
+/* WIN SCREEN */
 #winScreen {
   position: fixed;
   inset: 0;
@@ -163,6 +173,7 @@ button {
   background: white;
   padding: 30px;
   border-radius: 20px;
+  text-align: center;
 }
 </style>
 </head>
@@ -171,11 +182,11 @@ button {
 
 <header>
   <img src="img/logo.png" class="logo" alt="Colgate">
+  <h1>Colgate-Palmolive Memory</h1>
 </header>
 
-<!-- MENÚ -->
+<!-- MENU -->
 <div id="menuScreen">
-  <h2>Colgate-Palmolive Memory</h2>
   <div class="controls">
     <button onclick="startGame(2)">Fácil 2x2</button>
     <button onclick="startGame(3)">Medio 2x3</button>
@@ -183,7 +194,7 @@ button {
   </div>
 </div>
 
-<!-- JUEGO -->
+<!-- GAME -->
 <div id="gameScreen">
   <div class="gameTop">
     <button onclick="goHome()">🏠 Home</button>
@@ -192,6 +203,7 @@ button {
   <div class="game" id="gameBoard"></div>
 </div>
 
+<!-- WIN -->
 <div id="winScreen">
   <div id="winBox">
     <h2>🎉 ¡Felicidades!</h2>
@@ -199,7 +211,7 @@ button {
   </div>
 </div>
 
-<!-- AUDIOS -->
+<!-- AUDIO -->
 <audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
 <audio id="flipSound" src="audio/flip.mp3"></audio>
 <audio id="matchSound" src="audio/match.mp3"></audio>
@@ -214,7 +226,6 @@ const allImages = [
 let flipped = [];
 let moves = 0;
 let totalCards = 0;
-let soundEnabled = true;
 
 const menuScreen = document.getElementById('menuScreen');
 const gameScreen = document.getElementById('gameScreen');
