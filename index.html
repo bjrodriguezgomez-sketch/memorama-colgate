@@ -17,7 +17,7 @@ html, body {
   background: #f4f4f4;
 }
 
-/* ================= HEADER ================= */
+/* HEADER */
 header {
   background: #8B1E1E;
   height: 48px;
@@ -33,17 +33,17 @@ header h1 {
   font-weight: bold;
 }
 
-/* ================= LOGO ================= */
+/* LOGO */
 .logo-floating {
   position: fixed;
-  top: -50px; /* bajado ~1cm */
+  top: -180px;
   left: 16px;
   width: 400px;
   z-index: 9999;
   pointer-events: none;
 }
 
-/* ================= BUTTONS ================= */
+/* BUTTONS */
 button {
   background: #d32f2f;
   color: white;
@@ -61,7 +61,7 @@ button:hover {
   box-shadow: 0 8px 16px rgba(0,0,0,0.3);
 }
 
-/* ================= SCREENS ================= */
+/* SCREENS */
 .screen {
   position: absolute;
   inset: 48px 0 0 0;
@@ -82,7 +82,7 @@ button:hover {
   transform: translateY(0);
 }
 
-/* ================= GAME TOP ================= */
+/* GAME TOP */
 .gameTop {
   display: flex;
   justify-content: space-between;
@@ -94,7 +94,7 @@ button:hover {
   font-size: 18px;
 }
 
-/* ================= BOARD ================= */
+/* BOARD */
 .game {
   display: grid;
   gap: 14px;
@@ -104,7 +104,7 @@ button:hover {
   flex: 1;
 }
 
-/* ================= CARDS ================= */
+/* CARDS */
 .card {
   aspect-ratio: 3 / 4;
   perspective: 1000px;
@@ -136,14 +136,16 @@ button:hover {
   transform: rotateY(180deg);
 }
 
+/* MATCH ANIMATION – MEJORADA */
 .card.match .card-inner {
-  animation: matchPulse .45s ease;
-  box-shadow: 0 0 20px rgba(211,47,47,.9);
+  animation: matchPulse .6s ease;
+  box-shadow: 0 0 28px rgba(211,47,47,1);
 }
 
 @keyframes matchPulse {
   0%   { transform: rotateY(180deg) scale(1); }
-  50%  { transform: rotateY(180deg) scale(1.08); }
+  30%  { transform: rotateY(180deg) scale(1.12) translateY(-6px); }
+  60%  { transform: rotateY(180deg) scale(0.97); }
   100% { transform: rotateY(180deg) scale(1); }
 }
 
@@ -174,7 +176,7 @@ button:hover {
   object-fit: contain;
 }
 
-/* ================= WIN ================= */
+/* WIN */
 #winScreen {
   position: fixed;
   inset: 0;
@@ -296,6 +298,7 @@ function startGame(pairs) {
 function flipCard(card) {
   if (card.classList.contains('flipped') || flipped.length === 2) return;
   card.classList.add('flipped');
+  flipSound.currentTime = 0;
   flipSound.play();
   flipped.push(card);
 
@@ -304,12 +307,13 @@ function flipCard(card) {
     movesEl.textContent = moves;
 
     if (flipped[0].dataset.image === flipped[1].dataset.image) {
+      matchSound.currentTime = 0;
       matchSound.play();
       flipped.forEach(c => c.classList.add('match'));
       flipped = [];
 
       if (document.querySelectorAll('.card.flipped').length === totalCards) {
-        winGame();
+        setTimeout(winGame, 150);
       }
     } else {
       setTimeout(() => {
@@ -322,6 +326,8 @@ function flipCard(card) {
 
 function winGame() {
   bgMusic.pause();
+  matchSound.pause();
+  winSound.currentTime = 0;
   winSound.play();
   winScreen.style.display = 'flex';
 
