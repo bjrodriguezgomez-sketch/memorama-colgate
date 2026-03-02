@@ -8,24 +8,28 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
   font-family: Arial, sans-serif;
   background: #f5f5f5;
-  text-align: center;
 }
 
 /* HEADER */
 header {
   background: #8B1E1E;
-  padding: 14px 18px;
+  height: 90px;
+  padding: 0 16px;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
 }
 
 header img.logo {
-  height: 80px;
+  height: 150px;
+  max-height: 90px;
 }
 
 header h1 {
@@ -37,32 +41,33 @@ header h1 {
 
 /* CONTROLES */
 .controls {
-  margin: 14px 0;
+  margin: 8px 0;
 }
 
 button {
   background: #d32f2f;
   color: white;
   border: none;
-  padding: 12px 18px;
-  margin: 6px;
+  padding: 10px 16px;
+  margin: 4px;
   border-radius: 14px;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
 }
 
 .stats {
-  font-size: 18px;
-  margin-bottom: 10px;
+  font-size: 16px;
+  margin-bottom: 6px;
 }
 
 /* TABLERO */
 .game {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   max-width: 460px;
-  margin: 0 auto 40px;
+  margin: 0 auto;
   padding: 0 12px;
+  height: calc(100vh - 260px);
 }
 
 /* CARTAS */
@@ -71,11 +76,7 @@ button {
   perspective: 1000px;
   opacity: 0;
   transform: translateY(20px);
-  animation: enter 0.45s ease forwards;
-}
-
-.card:nth-child(n) {
-  animation-delay: calc(var(--i) * 60ms);
+  animation: enter 0.4s ease forwards;
 }
 
 @keyframes enter {
@@ -96,9 +97,9 @@ button {
   box-shadow: 0 6px 14px rgba(0,0,0,0.18);
 }
 
-.card-inner:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+.card-inner:active {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.25);
 }
 
 .card.flipped .card-inner {
@@ -116,12 +117,10 @@ button {
   justify-content: center;
 }
 
-/* FRENTE */
 .card-front {
   background: #d32f2f;
 }
 
-/* REVERSO */
 .card-back {
   background: white;
   transform: rotateY(180deg);
@@ -156,7 +155,7 @@ button {
 <body>
 
 <header>
-  <img src="img/logo.png" alt="Colgate" class="logo">
+  <img src="img/logo.png" class="logo" alt="Colgate">
   <h1>Colgate-Palmolive Memory</h1>
 </header>
 
@@ -200,7 +199,7 @@ let moves = 0;
 let totalCards = 0;
 let gameStarted = false;
 let soundEnabled = false;
-let confettiDone = false;
+let confettiTimer = null;
 
 const board = document.getElementById('gameBoard');
 const movesEl = document.getElementById('moves');
@@ -214,14 +213,8 @@ const soundBtn = document.getElementById('soundBtn');
 
 soundBtn.onclick = () => {
   soundEnabled = !soundEnabled;
-  if (soundEnabled && gameStarted) {
-    bgMusic.volume = 0.4;
-    bgMusic.play();
-    soundBtn.textContent = '🔇 Silenciar sonido';
-  } else {
-    bgMusic.pause();
-    soundBtn.textContent = '🔊 Activar sonido';
-  }
+  soundBtn.textContent = soundEnabled ? '🔇 Silenciar sonido' : '🔊 Activar sonido';
+  if (!soundEnabled) bgMusic.pause();
 };
 
 function startGame(pairs) {
@@ -229,12 +222,12 @@ function startGame(pairs) {
   board.innerHTML = '';
   flipped = [];
   moves = 0;
-  movesEl.textContent = moves;
-  confettiDone = false;
+  movesEl.textContent = 0;
   winScreen.style.display = 'none';
 
   if (soundEnabled) {
     bgMusic.currentTime = 0;
+    bgMusic.volume = 0.4;
     bgMusic.play();
   }
 
@@ -248,7 +241,7 @@ function startGame(pairs) {
   cards.forEach((img, i) => {
     const card = document.createElement('div');
     card.className = 'card';
-    card.style.setProperty('--i', i);
+    card.style.animationDelay = `${i * 60}ms`;
     card.dataset.image = img;
 
     card.innerHTML = `
@@ -291,9 +284,6 @@ function flipCard(card) {
 }
 
 function winGame() {
-  if (confettiDone) return;
-  confettiDone = true;
-
   bgMusic.pause();
   if (soundEnabled) winSound.play();
   winScreen.style.display = 'flex';
@@ -314,7 +304,9 @@ function goToMenu() {
   board.innerHTML = '';
   gameStarted = false;
   winScreen.style.display = 'none';
+  movesEl.textContent = 0;
   bgMusic.pause();
+  winSound.pause();
 }
 </script>
 
