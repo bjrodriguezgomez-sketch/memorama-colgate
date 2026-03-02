@@ -21,24 +21,26 @@ html, body {
 header {
   background: #8B1E1E;
   height: 50px;
-  padding: 0 16px;
   display: flex;
   align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-header img.logo {
-  height: 200px;
-  position: absolute;
-  left: 16px;
+  justify-content: center;
 }
 
 header h1 {
-  margin: 0 auto;
+  margin: 0;
   font-size: 18px;
   color: white;
   font-weight: bold;
+}
+
+/* FLOATING LOGO */
+.logo-floating {
+  position: fixed;
+  top: -30px;
+  left: 16px;
+  height: 200px;
+  z-index: 100;
+  pointer-events: none;
 }
 
 /* SCREENS */
@@ -50,9 +52,8 @@ header h1 {
 
 #menuScreen {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
 #gameScreen {
@@ -61,11 +62,7 @@ header h1 {
 }
 
 /* BUTTONS */
-.controls {
-  margin: 10px 0;
-}
-
-button {
+.controls button {
   background: #d32f2f;
   color: white;
   border: none;
@@ -80,7 +77,6 @@ button {
 .gameTop {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 8px 14px;
 }
 
@@ -115,16 +111,16 @@ button {
   width: 100%;
   height: 100%;
   border-radius: 16px;
-  transition: transform 0.6s, box-shadow 0.3s;
+  transition: transform 0.4s, box-shadow 0.3s;
   transform-style: preserve-3d;
-  cursor: pointer;
   position: relative;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
 }
 
-.card-inner:active {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 22px rgba(0,0,0,0.25);
+/* 🔥 ELEVACIÓN Y SOMBRA CORREGIDA */
+.card:active .card-inner {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.35);
 }
 
 .card.flipped .card-inner {
@@ -158,11 +154,11 @@ button {
   object-fit: contain;
 }
 
-/* WIN SCREEN */
+/* WIN */
 #winScreen {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0,0,0,0.7);
   display: none;
   align-items: center;
   justify-content: center;
@@ -180,8 +176,9 @@ button {
 
 <body>
 
+<img src="img/logo.png" class="logo-floating" alt="Colgate Logo">
+
 <header>
-  <img src="img/logo.png" class="logo" alt="Colgate">
   <h1>Colgate-Palmolive Memory</h1>
 </header>
 
@@ -227,8 +224,8 @@ let flipped = [];
 let moves = 0;
 let totalCards = 0;
 
-const menuScreen = document.getElementById('menuScreen');
-const gameScreen = document.getElementById('gameScreen');
+const menu = document.getElementById('menuScreen');
+const game = document.getElementById('gameScreen');
 const board = document.getElementById('gameBoard');
 const movesEl = document.getElementById('moves');
 const winScreen = document.getElementById('winScreen');
@@ -238,11 +235,11 @@ const flipSound = document.getElementById('flipSound');
 const matchSound = document.getElementById('matchSound');
 const winSound = document.getElementById('winSound');
 
-menuScreen.style.display = 'flex';
+menu.style.display = 'flex';
 
 function startGame(pairs) {
-  menuScreen.style.display = 'none';
-  gameScreen.style.display = 'flex';
+  menu.style.display = 'none';
+  game.style.display = 'flex';
   winScreen.style.display = 'none';
 
   board.innerHTML = '';
@@ -258,22 +255,18 @@ function startGame(pairs) {
   const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
   totalCards = cards.length;
 
-  const cols = pairs === 2 ? 2 : pairs === 3 ? 3 : 4;
-  board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  board.style.gridTemplateColumns = `repeat(${pairs === 2 ? 2 : pairs === 3 ? 3 : 4},1fr)`;
 
   cards.forEach((img, i) => {
     const card = document.createElement('div');
     card.className = 'card';
     card.style.animationDelay = `${i * 60}ms`;
     card.dataset.image = img;
-
     card.innerHTML = `
       <div class="card-inner">
         <div class="card-front"></div>
         <div class="card-back"><img src="${img}"></div>
-      </div>
-    `;
-
+      </div>`;
     card.onclick = () => flipCard(card);
     board.appendChild(card);
   });
@@ -281,7 +274,6 @@ function startGame(pairs) {
 
 function flipCard(card) {
   if (card.classList.contains('flipped') || flipped.length === 2) return;
-
   card.classList.add('flipped');
   flipSound.play();
   flipped.push(card);
@@ -324,15 +316,11 @@ function winGame() {
 }
 
 function goHome() {
-  board.innerHTML = '';
-  flipped = [];
-  moves = 0;
-  movesEl.textContent = 0;
   bgMusic.pause();
   winSound.pause();
   winScreen.style.display = 'none';
-  gameScreen.style.display = 'none';
-  menuScreen.style.display = 'flex';
+  game.style.display = 'none';
+  menu.style.display = 'flex';
 }
 </script>
 
