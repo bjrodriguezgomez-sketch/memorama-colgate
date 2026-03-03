@@ -117,7 +117,7 @@
     .game {
       display: grid;
       gap: 12px;
-      max-width: 420px;
+      max-width: 520px;
       margin: 20px auto 40px;
       padding: 0 10px;
     }
@@ -308,9 +308,9 @@
 
     board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-    if (cols === 2) board.style.maxWidth = '420px';
-    if (cols === 3) board.style.maxWidth = '420px';
-    if (cols === 4) board.style.maxWidth = '460px';
+    if (cols === 2) board.style.maxWidth = '520px';
+    if (cols === 3) board.style.maxWidth = '520px';
+    if (cols === 4) board.style.maxWidth = '600px';
 
     cards.forEach(img => {
       const card = document.createElement('div');
