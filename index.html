@@ -9,9 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -89,14 +87,14 @@
     /* GAME UI */
     .game-ui {
       display: none;
-      margin-top: 0; /* no empuja cartas */
+      margin-top: 0;
     }
 
-    /* HUD FLOTANTE (DERECHA) */
+    /* HUD FLOTANTE */
     .top-bar {
       position: fixed;
-      top: 56px;        /* debajo del header */
-      right: 16px;      /* lado derecho */
+      top: 56px;
+      right: 16px;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
@@ -108,7 +106,8 @@
       background: #d32f2f;
     }
 
-    .stats {
+    .stats,
+    .timer {
       font-size: 18px;
       font-weight: bold;
       color: #000;
@@ -118,7 +117,7 @@
     .game {
       display: grid;
       gap: 12px;
-      max-width: 420px;   /* base más flexible */
+      max-width: 420px;
       margin: 20px auto 40px;
       padding: 0 10px;
     }
@@ -231,6 +230,7 @@
   <div class="top-bar">
     <button class="home-btn" onclick="goHome()">🏠 Home</button>
     <div class="stats">Intentos: <span id="moves">0</span></div>
+    <div class="timer">Tiempo: <span id="time">00:00</span></div>
   </div>
 
   <div class="game" id="gameBoard"></div>
@@ -257,8 +257,12 @@
   let flipped = [];
   let moves = 0;
 
+  let time = 0;
+  let timerInterval = null;
+
   const board = document.getElementById('gameBoard');
   const movesEl = document.getElementById('moves');
+  const timeEl = document.getElementById('time');
   const menu = document.getElementById('menu');
   const gameUI = document.getElementById('gameUI');
   const winOverlay = document.getElementById('winOverlay');
@@ -268,6 +272,20 @@
   const matchSound = document.getElementById('matchSound');
   const winSound = document.getElementById('winSound');
 
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      time++;
+      const minutes = String(Math.floor(time / 60)).padStart(2, '0');
+      const seconds = String(time % 60).padStart(2, '0');
+      timeEl.textContent = `${minutes}:${seconds}`;
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+  }
+
   function startGame(rows, cols) {
     menu.classList.add('hidden');
     gameUI.style.display = 'block';
@@ -275,6 +293,10 @@
     moves = 0;
     movesEl.textContent = moves;
     flipped = [];
+
+    time = 0;
+    timeEl.textContent = '00:00';
+    startTimer();
 
     bgMusic.currentTime = 0;
     bgMusic.volume = 0.4;
@@ -286,10 +308,9 @@
 
     board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-    /* AJUSTE DE TAMAÑO POR DIFICULTAD */
-    if (cols === 2) board.style.maxWidth = '420px'; // Fácil
-    if (cols === 3) board.style.maxWidth = '420px'; // Medio
-    if (cols === 4) board.style.maxWidth = '460px'; // Difícil
+    if (cols === 2) board.style.maxWidth = '420px';
+    if (cols === 3) board.style.maxWidth = '420px';
+    if (cols === 4) board.style.maxWidth = '460px';
 
     cards.forEach(img => {
       const card = document.createElement('div');
@@ -333,6 +354,7 @@
         flipped = [];
 
         if (document.querySelectorAll('.card.flipped').length === cards.length) {
+          stopTimer();
           bgMusic.pause();
           winSound.play();
           confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
@@ -348,6 +370,7 @@
   }
 
   function goHome() {
+    stopTimer();
     winOverlay.style.display = 'none';
     gameUI.style.display = 'none';
     menu.classList.remove('hidden');
