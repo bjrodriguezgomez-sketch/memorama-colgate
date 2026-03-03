@@ -5,8 +5,6 @@
 <title>Colgate-Palmolive Memory</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
 <style>
 * { box-sizing: border-box; }
 
@@ -45,7 +43,9 @@ header h1 {
   z-index: 9;
 }
 
-.logo-floating img { width: 100%; }
+.logo-floating img {
+  width: 100%;
+}
 
 /* MENU */
 #menu {
@@ -71,7 +71,7 @@ button {
   position: relative;
 }
 
-/* SIDE PANEL (SUPERIOR DERECHA) */
+/* SIDE PANEL */
 #sidePanel {
   position: absolute;
   top: 0;
@@ -81,11 +81,7 @@ button {
 
 .stats {
   font-size: 18px;
-  margin: 6px 0;
-}
-
-#timer {
-  font-size: 16px;
+  margin-top: 8px;
 }
 
 /* BOARD */
@@ -97,8 +93,8 @@ button {
 
 /* CARD */
 .card {
-  width: 110px;
-  height: 150px;
+  width: 120px;
+  height: 160px;
   background: #d32f2f;
   border-radius: 16px;
   cursor: pointer;
@@ -135,7 +131,9 @@ button {
   justify-content: center;
 }
 
-.card-front { background: #d32f2f; }
+.card-front {
+  background: #d32f2f;
+}
 
 .card-back {
   background: white;
@@ -149,18 +147,7 @@ button {
   object-fit: contain;
 }
 
-.card.matched {
-  animation: matchPop .4s ease;
-}
-
-@keyframes matchPop {
-  50% {
-    transform: scale(1.08);
-    box-shadow: 0 0 20px red;
-  }
-}
-
-/* MODAL */
+/* WIN MODAL */
 #winModal {
   display: none;
   position: fixed;
@@ -176,7 +163,7 @@ button {
   padding: 20px;
   border-radius: 16px;
   width: 90%;
-  max-width: 320px;
+  max-width: 300px;
   text-align: center;
 }
 </style>
@@ -204,100 +191,93 @@ button {
   <div id="sidePanel">
     <button onclick="goHome()">🏠 Home</button>
     <div class="stats">Intentos: <span id="moves">0</span></div>
-    <div id="timer">Tiempo: 00:00</div>
   </div>
 </div>
 
 <div id="winModal">
   <div id="winBox">
     <h2>🎉 ¡Felicidades!</h2>
-    <p>Has completado el juego</p>
+    <p>Completaste el nivel</p>
     <button onclick="goHome()">Volver al menú</button>
   </div>
 </div>
 
 <script>
-const images=[
-'img/img1.png','img/img2.png','img/img3.png','img/img4.png',
-'img/img5.png','img/img6.png','img/img7.png','img/img8.png'
+const images = [
+  'img/img1.png','img/img2.png','img/img3.png','img/img4.png',
+  'img/img5.png','img/img6.png','img/img7.png','img/img8.png'
 ];
 
-let flipped=[],moves=0,matches=0,totalPairs=0;
-let seconds=0,timerInterval=null,started=false;
+let flipped = [];
+let moves = 0;
+let matches = 0;
+let totalPairs = 0;
 
-const board=document.getElementById('board');
-const movesEl=document.getElementById('moves');
-const timerEl=document.getElementById('timer');
+const board = document.getElementById('board');
+const movesEl = document.getElementById('moves');
 
-function startGame(cols,rows){
-  document.getElementById('menu').style.display='none';
-  document.getElementById('gameUI').style.display='block';
-  document.getElementById('winModal').style.display='none';
+function startGame(cols, rows) {
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('gameUI').style.display = 'block';
+  document.getElementById('winModal').style.display = 'none';
 
-  board.innerHTML='';
-  flipped=[];moves=0;matches=0;
-  seconds=0;started=false;
-  movesEl.textContent=0;
-  timerEl.textContent='Tiempo: 00:00';
-  clearInterval(timerInterval);
+  board.innerHTML = '';
+  flipped = [];
+  moves = 0;
+  matches = 0;
+  movesEl.textContent = 0;
 
-  totalPairs=(cols*rows)/2;
-  const selected=images.slice(0,totalPairs);
-  const cards=[...selected,...selected].sort(()=>Math.random()-0.5);
+  totalPairs = (cols * rows) / 2;
+  const selected = images.slice(0, totalPairs);
+  const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
 
-  board.style.gridTemplateColumns=`repeat(${cols},110px)`;
+  board.style.gridTemplateColumns = `repeat(${cols}, 120px)`;
 
-  cards.forEach(src=>{
-    const c=document.createElement('div');
-    c.className='card';
-    c.innerHTML=`<div class="card-inner">
-      <div class="card-face card-front"></div>
-      <div class="card-face card-back"><img src="${src}"></div>
-    </div>`;
-    c.onclick=()=>flip(c,src);
-    board.appendChild(c);
+  cards.forEach(src => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face card-front"></div>
+        <div class="card-face card-back">
+          <img src="${src}">
+        </div>
+      </div>`;
+    card.onclick = () => flip(card, src);
+    board.appendChild(card);
   });
 }
 
-function startTimer(){
-  timerInterval=setInterval(()=>{
-    seconds++;
-    const m=String(Math.floor(seconds/60)).padStart(2,'0');
-    const s=String(seconds%60).padStart(2,'0');
-    timerEl.textContent=`Tiempo: ${m}:${s}`;
-  },1000);
-}
-
-function flip(card,src){
-  if(card.classList.contains('flipped')||flipped.length===2)return;
-
-  if(!started){ started=true; startTimer(); }
+function flip(card, src) {
+  if (card.classList.contains('flipped') || flipped.length === 2) return;
 
   card.classList.add('flipped');
-  flipped.push({card,src});
+  flipped.push({ card, src });
 
-  if(flipped.length===2){
-    moves++; movesEl.textContent=moves;
-    if(flipped[0].src===flipped[1].src){
-      flipped.forEach(f=>f.card.classList.add('matched'));
-      matches++; flipped=[];
-      if(matches===totalPairs){
-        clearInterval(timerInterval);
-        confetti({particleCount:300});
-        document.getElementById('winModal').style.display='flex';
+  if (flipped.length === 2) {
+    moves++;
+    movesEl.textContent = moves;
+
+    if (flipped[0].src === flipped[1].src) {
+      matches++;
+      flipped = [];
+
+      if (matches === totalPairs) {
+        document.getElementById('winModal').style.display = 'flex';
       }
     } else {
-      setTimeout(()=>{
-        flipped.forEach(f=>f.card.classList.remove('flipped'));
-        flipped=[];
-      },800);
+      setTimeout(() => {
+        flipped.forEach(f => f.card.classList.remove('flipped'));
+        flipped = [];
+      }, 800);
     }
   }
 }
 
-function goHome(){
-  document.getElementById('gameUI').style.display='none';
-  document.getElementById('menu').style.display='block';
+function goHome() {
+  document.getElementById('gameUI').style.display = 'none';
+  document.getElementById('menu').style.display = 'block';
+  document.getElementById('winModal').style.display = 'none';
 }
 </script>
 
