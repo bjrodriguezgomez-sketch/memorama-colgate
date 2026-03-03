@@ -45,9 +45,7 @@ header h1 {
   z-index: 9;
 }
 
-.logo-floating img {
-  width: 100%;
-}
+.logo-floating img { width: 100%; }
 
 /* MENU */
 #menu {
@@ -66,32 +64,23 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
-  opacity: 0.6;
-}
+button:disabled { opacity: .6; }
 
-/* GAME */
+/* GAME UI */
 #gameUI {
   display: none;
   margin-top: 120px;
-  display: flex;
   justify-content: center;
   gap: 30px;
 }
 
+/* SIDE PANEL */
 #sidePanel {
-  min-width: 140px;
+  min-width: 150px;
 }
 
-.stats {
-  font-size: 18px;
-  margin-bottom: 6px;
-}
-
-#timer {
-  font-size: 16px;
-  margin-bottom: 12px;
-}
+.stats { font-size: 18px; margin: 6px 0; }
+#timer { font-size: 16px; }
 
 /* BOARD */
 .game {
@@ -100,6 +89,7 @@ button:disabled {
   max-width: 360px;
 }
 
+/* CARD */
 .card {
   aspect-ratio: 3/4;
   background: #d32f2f;
@@ -123,9 +113,7 @@ button:disabled {
   position: relative;
 }
 
-.card.flipped .card-inner {
-  transform: rotateY(180deg);
-}
+.card.flipped .card-inner { transform: rotateY(180deg); }
 
 .card-face {
   position: absolute;
@@ -186,10 +174,7 @@ input {
   margin-top: 10px;
 }
 
-#ranking {
-  margin-top: 10px;
-  font-size: 14px;
-}
+#ranking { margin-top: 10px; font-size: 14px; }
 </style>
 </head>
 
@@ -219,17 +204,7 @@ input {
   </div>
 </div>
 
-<div id="winModal">
-  <div id="winBox">
-    <h3>🎉 ¡Felicidades!</h3>
-    <p>Puntuación: <strong id="scoreText"></strong></p>
-    <input id="playerName" maxlength="10" placeholder="Tu nombre">
-    <button id="saveBtn" onclick="saveScore()">Guardar</button>
-    <div id="ranking"></div>
-    <button onclick="goHome()">Volver al menú</button>
-  </div>
-</div>
-
+<!-- Audios -->
 <audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
 <audio id="flipSound" src="audio/flip.mp3"></audio>
 <audio id="matchSound" src="audio/match.mp3"></audio>
@@ -243,7 +218,7 @@ const images=[
 
 let flipped=[],moves=0,matches=0,totalPairs=0;
 let seconds=0,timerInterval=null,started=false;
-let score=0,currentLevel='',canSave=true;
+let currentLevel='';
 
 const board=document.getElementById('board');
 const movesEl=document.getElementById('moves');
@@ -256,7 +231,7 @@ function startGame(level,cols,rows){
 
   board.innerHTML='';
   flipped=[];moves=0;matches=0;
-  seconds=0;started=false;canSave=true;
+  seconds=0;started=false;
   movesEl.textContent=0;
   timerEl.textContent='Tiempo: 00:00';
   clearInterval(timerInterval);
@@ -322,36 +297,10 @@ function win(){
   clearInterval(timerInterval);
   bgMusic.pause();
   winSound.play();
-  score=Math.max(1000-(seconds*5)-(moves*10),0);
-  document.getElementById('scoreText').textContent=score;
-  document.getElementById('saveBtn').disabled=false;
-  confetti({particleCount:300,spread:90,colors:['#fff','#d32f2f']});
-  document.getElementById('winModal').style.display='flex';
-  loadRanking();
-}
-
-function saveScore(){
-  if(!canSave)return;
-  canSave=false;
-  document.getElementById('saveBtn').disabled=true;
-
-  const name=document.getElementById('playerName').value||'Anon';
-  const data=JSON.parse(localStorage.getItem('ranking')||'[]');
-  data.push({name,score,level:currentLevel});
-  data.sort((a,b)=>b.score-a.score);
-  localStorage.setItem('ranking',JSON.stringify(data.slice(0,5)));
-  loadRanking();
-}
-
-function loadRanking(){
-  const data=JSON.parse(localStorage.getItem('ranking')||'[]');
-  document.getElementById('ranking').innerHTML=
-    '<h4>🏆 Ranking</h4>'+
-    data.map((r,i)=>`${i+1}. ${r.name} – ${r.score} pts – ${r.level}`).join('<br>');
+  confetti({particleCount:300,spread:90});
 }
 
 function goHome(){
-  document.getElementById('winModal').style.display='none';
   document.getElementById('gameUI').style.display='none';
   document.getElementById('menu').style.display='block';
   bgMusic.pause();
