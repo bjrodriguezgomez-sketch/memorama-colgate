@@ -8,18 +8,15 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-/* ===== RESET ===== */
 * { box-sizing: border-box; }
 
-/* ===== BODY ===== */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #f5f5f5;
-  text-align: center;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 header {
   position: fixed;
   top: 0;
@@ -37,10 +34,9 @@ header {
 header h1 {
   font-size: 18px;
   margin: 0;
-  font-weight: bold;
 }
 
-/* ===== LOGO ===== */
+/* LOGO */
 .logo-floating {
   position: absolute;
   top: 32px;
@@ -53,7 +49,12 @@ header h1 {
   width: 100%;
 }
 
-/* ===== BUTTONS ===== */
+/* MENU */
+#menu {
+  margin-top: 140px;
+  text-align: center;
+}
+
 button {
   background: #d32f2f;
   color: white;
@@ -65,19 +66,21 @@ button {
   cursor: pointer;
 }
 
-button:active {
-  transform: scale(0.95);
+button:disabled {
+  opacity: 0.6;
 }
 
-/* ===== MENU ===== */
-#menu {
-  margin-top: 140px;
-}
-
-/* ===== GAME UI ===== */
+/* GAME */
 #gameUI {
   display: none;
-  margin-top: 140px;
+  margin-top: 120px;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+#sidePanel {
+  min-width: 140px;
 }
 
 .stats {
@@ -90,29 +93,26 @@ button:active {
   margin-bottom: 12px;
 }
 
-/* ===== BOARD ===== */
+/* BOARD */
 .game {
   display: grid;
   gap: 12px;
   max-width: 360px;
-  margin: 0 auto 40px;
-  padding: 0 10px;
 }
 
-/* ===== CARD ===== */
 .card {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3/4;
   background: #d32f2f;
   border-radius: 16px;
   cursor: pointer;
   perspective: 800px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 8px rgba(0,0,0,.25);
   transition: transform .2s, box-shadow .2s;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 18px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 18px rgba(0,0,0,.3);
 }
 
 .card-inner {
@@ -138,9 +138,7 @@ button:active {
   justify-content: center;
 }
 
-.card-front {
-  background: #d32f2f;
-}
+.card-front { background: #d32f2f; }
 
 .card-back {
   background: white;
@@ -154,23 +152,20 @@ button:active {
   object-fit: contain;
 }
 
-/* ===== MATCH ANIMATION ===== */
 .card.matched {
   animation: matchPop .4s ease;
 }
 
 @keyframes matchPop {
-  0% { transform: scale(1); }
   50% { transform: scale(1.08); box-shadow: 0 0 20px red; }
-  100% { transform: scale(1); }
 }
 
-/* ===== MODAL ===== */
+/* MODAL */
 #winModal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,.6);
   z-index: 20;
   align-items: center;
   justify-content: center;
@@ -182,16 +177,15 @@ button:active {
   border-radius: 16px;
   width: 90%;
   max-width: 320px;
+  text-align: center;
 }
 
 input {
-  padding: 8px;
   width: 100%;
+  padding: 8px;
   margin-top: 10px;
-  font-size: 16px;
 }
 
-/* ===== RANKING ===== */
 #ranking {
   margin-top: 10px;
   font-size: 14px;
@@ -209,89 +203,79 @@ input {
   <img src="img/logo.png">
 </div>
 
-<!-- MENU -->
 <div id="menu">
-  <button onclick="startGame(4)">Fácil</button>
-  <button onclick="startGame(6)">Medio</button>
-  <button onclick="startGame(8)">Difícil</button>
+  <button onclick="startGame('Fácil',2,2)">Fácil 2x2</button>
+  <button onclick="startGame('Medio',3,2)">Medio 2x3</button>
+  <button onclick="startGame('Difícil',4,4)">Difícil 4x4</button>
 </div>
 
-<!-- GAME UI -->
 <div id="gameUI">
-  <button onclick="goHome()">🏠 Home</button>
-
-  <div class="stats">Intentos: <span id="moves">0</span></div>
-  <div id="timer">Tiempo: 00:00</div>
-
   <div class="game" id="board"></div>
+
+  <div id="sidePanel">
+    <button onclick="goHome()">🏠 Home</button>
+    <div class="stats">Intentos: <span id="moves">0</span></div>
+    <div id="timer">Tiempo: 00:00</div>
+  </div>
 </div>
 
-<!-- MODAL -->
 <div id="winModal">
   <div id="winBox">
     <h3>🎉 ¡Felicidades!</h3>
     <p>Puntuación: <strong id="scoreText"></strong></p>
-
     <input id="playerName" maxlength="10" placeholder="Tu nombre">
-    <button onclick="saveScore()">Guardar</button>
-
+    <button id="saveBtn" onclick="saveScore()">Guardar</button>
     <div id="ranking"></div>
-
     <button onclick="goHome()">Volver al menú</button>
   </div>
 </div>
 
-<!-- AUDIOS -->
 <audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
 <audio id="flipSound" src="audio/flip.mp3"></audio>
 <audio id="matchSound" src="audio/match.mp3"></audio>
 <audio id="winSound" src="audio/win.mp3"></audio>
 
 <script>
-const images = [
-  'img/img1.png','img/img2.png','img/img3.png','img/img4.png',
-  'img/img5.png','img/img6.png','img/img7.png','img/img8.png'
+const images=[
+'img/img1.png','img/img2.png','img/img3.png','img/img4.png',
+'img/img5.png','img/img6.png','img/img7.png','img/img8.png'
 ];
 
-let flipped=[], moves=0, matches=0, totalPairs=0;
-let seconds=0, timerInterval=null, gameStarted=false;
-let score=0;
+let flipped=[],moves=0,matches=0,totalPairs=0;
+let seconds=0,timerInterval=null,started=false;
+let score=0,currentLevel='',canSave=true;
 
 const board=document.getElementById('board');
 const movesEl=document.getElementById('moves');
 const timerEl=document.getElementById('timer');
-const menu=document.getElementById('menu');
-const gameUI=document.getElementById('gameUI');
-const winModal=document.getElementById('winModal');
 
-function startGame(pairs){
-  menu.style.display='none';
-  gameUI.style.display='block';
+function startGame(level,cols,rows){
+  currentLevel=level;
+  document.getElementById('menu').style.display='none';
+  document.getElementById('gameUI').style.display='flex';
 
   board.innerHTML='';
-  flipped=[]; moves=0; matches=0;
-  seconds=0; gameStarted=false;
+  flipped=[];moves=0;matches=0;
+  seconds=0;started=false;canSave=true;
   movesEl.textContent=0;
   timerEl.textContent='Tiempo: 00:00';
-
   clearInterval(timerInterval);
 
-  totalPairs=pairs;
-  const selected=images.slice(0,pairs);
+  totalPairs=(cols*rows)/2;
+  const selected=images.slice(0,totalPairs);
   const cards=[...selected,...selected].sort(()=>Math.random()-0.5);
 
-  board.style.gridTemplateColumns=`repeat(${pairs===4?2:pairs===6?3:4},1fr)`;
+  board.style.gridTemplateColumns=`repeat(${cols},1fr)`;
 
   cards.forEach(src=>{
-    const card=document.createElement('div');
-    card.className='card';
-    card.innerHTML=`
-      <div class="card-inner">
-        <div class="card-face card-front"></div>
-        <div class="card-face card-back"><img src="${src}"></div>
-      </div>`;
-    card.onclick=()=>flip(card,src);
-    board.appendChild(card);
+    const c=document.createElement('div');
+    c.className='card';
+    c.innerHTML=`<div class="card-inner">
+      <div class="card-face card-front"></div>
+      <div class="card-face card-back"><img src="${src}"></div>
+    </div>`;
+    c.onclick=()=>flip(c,src);
+    board.appendChild(c);
   });
 }
 
@@ -307,8 +291,8 @@ function startTimer(){
 function flip(card,src){
   if(card.classList.contains('flipped')||flipped.length===2)return;
 
-  if(!gameStarted){
-    gameStarted=true;
+  if(!started){
+    started=true;
     startTimer();
     bgMusic.volume=0.4;
     bgMusic.play();
@@ -319,14 +303,11 @@ function flip(card,src){
   flipped.push({card,src});
 
   if(flipped.length===2){
-    moves++;
-    movesEl.textContent=moves;
-
+    moves++; movesEl.textContent=moves;
     if(flipped[0].src===flipped[1].src){
       matchSound.play();
       flipped.forEach(f=>f.card.classList.add('matched'));
-      matches++;
-      flipped=[];
+      matches++; flipped=[];
       if(matches===totalPairs) win();
     } else {
       setTimeout(()=>{
@@ -341,19 +322,22 @@ function win(){
   clearInterval(timerInterval);
   bgMusic.pause();
   winSound.play();
-
   score=Math.max(1000-(seconds*5)-(moves*10),0);
   document.getElementById('scoreText').textContent=score;
-
+  document.getElementById('saveBtn').disabled=false;
   confetti({particleCount:300,spread:90,colors:['#fff','#d32f2f']});
-  winModal.style.display='flex';
+  document.getElementById('winModal').style.display='flex';
   loadRanking();
 }
 
 function saveScore(){
+  if(!canSave)return;
+  canSave=false;
+  document.getElementById('saveBtn').disabled=true;
+
   const name=document.getElementById('playerName').value||'Anon';
   const data=JSON.parse(localStorage.getItem('ranking')||'[]');
-  data.push({name,score});
+  data.push({name,score,level:currentLevel});
   data.sort((a,b)=>b.score-a.score);
   localStorage.setItem('ranking',JSON.stringify(data.slice(0,5)));
   loadRanking();
@@ -363,13 +347,13 @@ function loadRanking(){
   const data=JSON.parse(localStorage.getItem('ranking')||'[]');
   document.getElementById('ranking').innerHTML=
     '<h4>🏆 Ranking</h4>'+
-    data.map((r,i)=>`${i+1}. ${r.name} - ${r.score}`).join('<br>');
+    data.map((r,i)=>`${i+1}. ${r.name} – ${r.score} pts – ${r.level}`).join('<br>');
 }
 
 function goHome(){
-  winModal.style.display='none';
-  gameUI.style.display='none';
-  menu.style.display='block';
+  document.getElementById('winModal').style.display='none';
+  document.getElementById('gameUI').style.display='none';
+  document.getElementById('menu').style.display='block';
   bgMusic.pause();
 }
 </script>
