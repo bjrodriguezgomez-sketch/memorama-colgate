@@ -8,144 +8,131 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-html, body {
+/* ===== RESET ===== */
+* { box-sizing: border-box; }
+
+/* ===== BODY ===== */
+body {
   margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
   font-family: Arial, sans-serif;
-  background: #f4f4f4;
+  background: #f5f5f5;
+  text-align: center;
 }
 
-/* HEADER */
+/* ===== HEADER ===== */
 header {
-  background: #8B1E1E;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 48px;
+  background: #8B1E1E;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
 header h1 {
-  margin: 0;
   font-size: 18px;
-  color: white;
+  margin: 0;
   font-weight: bold;
 }
 
-/* LOGO */
+/* ===== LOGO ===== */
 .logo-floating {
-  position: fixed;
-  top: 100px;
-  left: 16px;
-  width: 400px;
-  z-index: 999;
-  pointer-events: none;
+  position: absolute;
+  top: 32px;
+  left: 40px;
+  width: 200px;
+  z-index: 9;
 }
 
-/* BUTTONS */
+.logo-floating img {
+  width: 100%;
+}
+
+/* ===== BUTTONS ===== */
 button {
   background: #d32f2f;
   color: white;
   border: none;
-  padding: 14px 22px;
-  margin: 8px;
-  border-radius: 16px;
+  padding: 12px 18px;
+  margin: 6px;
+  border-radius: 14px;
   font-size: 16px;
   cursor: pointer;
-  transition: transform .2s ease, box-shadow .2s ease;
 }
 
-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 22px rgba(0,0,0,.35);
+button:active {
+  transform: scale(0.95);
 }
 
-/* SCREENS */
-.screen {
-  position: absolute;
-  inset: 48px 0 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ===== MENU ===== */
+#menu {
+  margin-top: 140px;
 }
 
-.hidden {
+/* ===== GAME UI ===== */
+#gameUI {
   display: none;
-}
-
-/* GAME LAYOUT */
-.gameWrapper {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-/* HOME + STATS */
-.sidePanel {
-  position: absolute;
-  right: 16px;
-  top: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  margin-top: 140px;
 }
 
 .stats {
-  margin-top: 8px;
   font-size: 18px;
+  margin-bottom: 6px;
 }
 
-/* BOARD */
+#timer {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+/* ===== BOARD ===== */
 .game {
   display: grid;
-  gap: 14px;
-  max-width: 460px;
-  margin: 80px auto 0;
-  padding: 0 14px;
+  gap: 12px;
+  max-width: 360px;
+  margin: 0 auto 40px;
+  padding: 0 10px;
 }
 
-/* CARDS */
+/* ===== CARD ===== */
 .card {
   aspect-ratio: 3 / 4;
-  perspective: 1000px;
+  background: #d32f2f;
+  border-radius: 16px;
+  cursor: pointer;
+  perspective: 800px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  transition: transform .2s, box-shadow .2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.3);
 }
 
 .card-inner {
   width: 100%;
   height: 100%;
-  border-radius: 16px;
+  transition: transform .6s;
   transform-style: preserve-3d;
-  transition: transform .35s ease, box-shadow .35s ease;
-  box-shadow: 0 8px 18px rgba(0,0,0,.25);
-}
-
-.card:hover .card-inner {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 30px rgba(0,0,0,.35);
+  position: relative;
 }
 
 .card.flipped .card-inner {
   transform: rotateY(180deg);
 }
 
-.card.match .card-inner {
-  animation: matchPulse .6s ease;
-  box-shadow: 0 0 28px rgba(211,47,47,1);
-}
-
-@keyframes matchPulse {
-  0% { transform: rotateY(180deg) scale(1); }
-  40% { transform: rotateY(180deg) scale(1.12); }
-  100% { transform: rotateY(180deg) scale(1); }
-}
-
-.card-front,
-.card-back {
+.card-face {
   position: absolute;
-  inset: 0;
-  border-radius: 16px;
+  width: 100%;
+  height: 100%;
   backface-visibility: hidden;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,72 +145,103 @@ button:hover {
 .card-back {
   background: white;
   transform: rotateY(180deg);
-  border: 4px solid #d32f2f;
+  border: 3px solid #d32f2f;
 }
 
 .card-back img {
-  width: 90%;
-  height: 90%;
+  width: 85%;
+  height: 85%;
   object-fit: contain;
 }
 
-/* WIN */
-#winScreen {
+/* ===== MATCH ANIMATION ===== */
+.card.matched {
+  animation: matchPop .4s ease;
+}
+
+@keyframes matchPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); box-shadow: 0 0 20px red; }
+  100% { transform: scale(1); }
+}
+
+/* ===== MODAL ===== */
+#winModal {
+  display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.7);
-  display: none;
+  background: rgba(0,0,0,0.6);
+  z-index: 20;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
 }
 
 #winBox {
   background: white;
-  padding: 32px;
-  border-radius: 20px;
-  text-align: center;
+  padding: 20px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 320px;
+}
+
+input {
+  padding: 8px;
+  width: 100%;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+/* ===== RANKING ===== */
+#ranking {
+  margin-top: 10px;
+  font-size: 14px;
 }
 </style>
 </head>
 
 <body>
 
-<img src="img/logo.png" class="logo-floating" alt="Colgate Logo">
-
 <header>
   <h1>Colgate-Palmolive Memory</h1>
 </header>
 
+<div class="logo-floating">
+  <img src="img/logo.png">
+</div>
+
 <!-- MENU -->
-<div id="menuScreen" class="screen">
-  <div>
-    <button onclick="startGame(2)">Fácil 2x2</button>
-    <button onclick="startGame(3)">Medio 2x3</button>
-    <button onclick="startGame(8)">Difícil 4x4</button>
-  </div>
+<div id="menu">
+  <button onclick="startGame(4)">Fácil</button>
+  <button onclick="startGame(6)">Medio</button>
+  <button onclick="startGame(8)">Difícil</button>
 </div>
 
-<!-- GAME -->
-<div id="gameScreen" class="screen hidden">
-  <div class="gameWrapper">
-    <div class="sidePanel">
-      <button onclick="goHome()">🏠 Home</button>
-      <div class="stats">Intentos: <span id="moves">0</span></div>
-    </div>
-    <div class="game" id="gameBoard"></div>
-  </div>
+<!-- GAME UI -->
+<div id="gameUI">
+  <button onclick="goHome()">🏠 Home</button>
+
+  <div class="stats">Intentos: <span id="moves">0</span></div>
+  <div id="timer">Tiempo: 00:00</div>
+
+  <div class="game" id="board"></div>
 </div>
 
-<!-- WIN -->
-<div id="winScreen">
+<!-- MODAL -->
+<div id="winModal">
   <div id="winBox">
-    <h2>🎉 ¡Felicidades!</h2>
+    <h3>🎉 ¡Felicidades!</h3>
+    <p>Puntuación: <strong id="scoreText"></strong></p>
+
+    <input id="playerName" maxlength="10" placeholder="Tu nombre">
+    <button onclick="saveScore()">Guardar</button>
+
+    <div id="ranking"></div>
+
     <button onclick="goHome()">Volver al menú</button>
   </div>
 </div>
 
-<!-- AUDIO -->
+<!-- AUDIOS -->
 <audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
 <audio id="flipSound" src="audio/flip.mp3"></audio>
 <audio id="matchSound" src="audio/match.mp3"></audio>
@@ -235,99 +253,124 @@ const images = [
   'img/img5.png','img/img6.png','img/img7.png','img/img8.png'
 ];
 
-let flipped = [];
-let moves = 0;
-let totalCards = 0;
+let flipped=[], moves=0, matches=0, totalPairs=0;
+let seconds=0, timerInterval=null, gameStarted=false;
+let score=0;
 
-const menu = document.getElementById('menuScreen');
-const game = document.getElementById('gameScreen');
-const board = document.getElementById('gameBoard');
-const movesEl = document.getElementById('moves');
-const winScreen = document.getElementById('winScreen');
+const board=document.getElementById('board');
+const movesEl=document.getElementById('moves');
+const timerEl=document.getElementById('timer');
+const menu=document.getElementById('menu');
+const gameUI=document.getElementById('gameUI');
+const winModal=document.getElementById('winModal');
 
-const bgMusic = document.getElementById('bgMusic');
-const flipSound = document.getElementById('flipSound');
-const matchSound = document.getElementById('matchSound');
-const winSound = document.getElementById('winSound');
+function startGame(pairs){
+  menu.style.display='none';
+  gameUI.style.display='block';
 
-function startGame(pairs) {
-  menu.classList.add('hidden');
-  game.classList.remove('hidden');
+  board.innerHTML='';
+  flipped=[]; moves=0; matches=0;
+  seconds=0; gameStarted=false;
+  movesEl.textContent=0;
+  timerEl.textContent='Tiempo: 00:00';
 
-  board.innerHTML = '';
-  flipped = [];
-  moves = 0;
-  movesEl.textContent = 0;
+  clearInterval(timerInterval);
 
-  bgMusic.currentTime = 0;
-  bgMusic.volume = 0.4;
-  bgMusic.play();
+  totalPairs=pairs;
+  const selected=images.slice(0,pairs);
+  const cards=[...selected,...selected].sort(()=>Math.random()-0.5);
 
-  const selected = images.slice(0, pairs);
-  const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
-  totalCards = cards.length;
+  board.style.gridTemplateColumns=`repeat(${pairs===4?2:pairs===6?3:4},1fr)`;
 
-  board.style.gridTemplateColumns =
-    `repeat(${pairs === 2 ? 2 : pairs === 3 ? 3 : 4}, 1fr)`;
-
-  cards.forEach(img => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.image = img;
-    card.innerHTML = `
+  cards.forEach(src=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
       <div class="card-inner">
-        <div class="card-front"></div>
-        <div class="card-back"><img src="${img}"></div>
+        <div class="card-face card-front"></div>
+        <div class="card-face card-back"><img src="${src}"></div>
       </div>`;
-    card.onclick = () => flipCard(card);
+    card.onclick=()=>flip(card,src);
     board.appendChild(card);
   });
 }
 
-function flipCard(card) {
-  if (card.classList.contains('flipped') || flipped.length === 2) return;
+function startTimer(){
+  timerInterval=setInterval(()=>{
+    seconds++;
+    const m=String(Math.floor(seconds/60)).padStart(2,'0');
+    const s=String(seconds%60).padStart(2,'0');
+    timerEl.textContent=`Tiempo: ${m}:${s}`;
+  },1000);
+}
 
-  card.classList.add('flipped');
-  flipSound.currentTime = 0;
+function flip(card,src){
+  if(card.classList.contains('flipped')||flipped.length===2)return;
+
+  if(!gameStarted){
+    gameStarted=true;
+    startTimer();
+    bgMusic.volume=0.4;
+    bgMusic.play();
+  }
+
   flipSound.play();
-  flipped.push(card);
+  card.classList.add('flipped');
+  flipped.push({card,src});
 
-  if (flipped.length === 2) {
+  if(flipped.length===2){
     moves++;
-    movesEl.textContent = moves;
+    movesEl.textContent=moves;
 
-    if (flipped[0].dataset.image === flipped[1].dataset.image) {
-      matchSound.currentTime = 0;
+    if(flipped[0].src===flipped[1].src){
       matchSound.play();
-      flipped.forEach(c => c.classList.add('match'));
-      flipped = [];
-
-      if (document.querySelectorAll('.card.flipped').length === totalCards) {
-        setTimeout(winGame, 300);
-      }
+      flipped.forEach(f=>f.card.classList.add('matched'));
+      matches++;
+      flipped=[];
+      if(matches===totalPairs) win();
     } else {
-      setTimeout(() => {
-        flipped.forEach(c => c.classList.remove('flipped'));
-        flipped = [];
-      }, 900);
+      setTimeout(()=>{
+        flipped.forEach(f=>f.card.classList.remove('flipped'));
+        flipped=[];
+      },800);
     }
   }
 }
 
-function winGame() {
+function win(){
+  clearInterval(timerInterval);
   bgMusic.pause();
-  winSound.currentTime = 0;
   winSound.play();
-  winScreen.style.display = 'flex';
-  confetti({ particleCount: 200, spread: 80 });
+
+  score=Math.max(1000-(seconds*5)-(moves*10),0);
+  document.getElementById('scoreText').textContent=score;
+
+  confetti({particleCount:300,spread:90,colors:['#fff','#d32f2f']});
+  winModal.style.display='flex';
+  loadRanking();
 }
 
-function goHome() {
+function saveScore(){
+  const name=document.getElementById('playerName').value||'Anon';
+  const data=JSON.parse(localStorage.getItem('ranking')||'[]');
+  data.push({name,score});
+  data.sort((a,b)=>b.score-a.score);
+  localStorage.setItem('ranking',JSON.stringify(data.slice(0,5)));
+  loadRanking();
+}
+
+function loadRanking(){
+  const data=JSON.parse(localStorage.getItem('ranking')||'[]');
+  document.getElementById('ranking').innerHTML=
+    '<h4>🏆 Ranking</h4>'+
+    data.map((r,i)=>`${i+1}. ${r.name} - ${r.score}`).join('<br>');
+}
+
+function goHome(){
+  winModal.style.display='none';
+  gameUI.style.display='none';
+  menu.style.display='block';
   bgMusic.pause();
-  winSound.pause();
-  winScreen.style.display = 'none';
-  game.classList.add('hidden');
-  menu.classList.remove('hidden');
 }
 </script>
 
