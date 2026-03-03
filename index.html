@@ -89,17 +89,17 @@
     /* GAME UI */
     .game-ui {
       display: none;
-      margin-top: 0; /* ya no empuja nada */
+      margin-top: 0; /* no empuja cartas */
     }
 
-    /* HUD FLOTANTE */
+    /* HUD FLOTANTE (DERECHA) */
     .top-bar {
       position: fixed;
-      top: 32px;
-      left: 240px; /* logo (200px) + aire */
+      top: 56px;        /* debajo del header */
+      right: 16px;      /* lado derecho */
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: flex-end;
       gap: 6px;
       z-index: 11;
     }
@@ -118,7 +118,7 @@
     .game {
       display: grid;
       gap: 12px;
-      max-width: 360px;
+      max-width: 420px;   /* base más flexible */
       margin: 20px auto 40px;
       padding: 0 10px;
     }
@@ -285,6 +285,11 @@
     cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
 
     board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    /* AJUSTE DE TAMAÑO POR DIFICULTAD */
+    if (cols === 2) board.style.maxWidth = '420px'; // Fácil
+    if (cols === 3) board.style.maxWidth = '420px'; // Medio
+    if (cols === 4) board.style.maxWidth = '460px'; // Difícil
 
     cards.forEach(img => {
       const card = document.createElement('div');
