@@ -49,7 +49,7 @@ header h1 {
 
 /* MENU */
 #menu {
-  margin-top: 140px;
+  margin-top: 160px;
   text-align: center;
 }
 
@@ -64,34 +64,41 @@ button {
   cursor: pointer;
 }
 
-button:disabled { opacity: .6; }
-
 /* GAME UI */
 #gameUI {
   display: none;
   margin-top: 120px;
-  justify-content: center;
-  gap: 30px;
+  position: relative;
 }
 
-/* SIDE PANEL */
+/* SIDE PANEL (SUPERIOR DERECHA) */
 #sidePanel {
-  min-width: 150px;
+  position: absolute;
+  top: 0;
+  right: 40px;
+  text-align: right;
 }
 
-.stats { font-size: 18px; margin: 6px 0; }
-#timer { font-size: 16px; }
+.stats {
+  font-size: 18px;
+  margin: 6px 0;
+}
+
+#timer {
+  font-size: 16px;
+}
 
 /* BOARD */
 .game {
   display: grid;
-  gap: 12px;
-  max-width: 360px;
+  gap: 14px;
+  justify-content: center;
 }
 
 /* CARD */
 .card {
-  aspect-ratio: 3/4;
+  width: 110px;
+  height: 150px;
   background: #d32f2f;
   border-radius: 16px;
   cursor: pointer;
@@ -113,7 +120,9 @@ button:disabled { opacity: .6; }
   position: relative;
 }
 
-.card.flipped .card-inner { transform: rotateY(180deg); }
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
 
 .card-face {
   position: absolute;
@@ -145,7 +154,10 @@ button:disabled { opacity: .6; }
 }
 
 @keyframes matchPop {
-  50% { transform: scale(1.08); box-shadow: 0 0 20px red; }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px red;
+  }
 }
 
 /* MODAL */
@@ -154,7 +166,7 @@ button:disabled { opacity: .6; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.6);
-  z-index: 20;
+  z-index: 30;
   align-items: center;
   justify-content: center;
 }
@@ -167,14 +179,6 @@ button:disabled { opacity: .6; }
   max-width: 320px;
   text-align: center;
 }
-
-input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 10px;
-}
-
-#ranking { margin-top: 10px; font-size: 14px; }
 </style>
 </head>
 
@@ -189,9 +193,9 @@ input {
 </div>
 
 <div id="menu">
-  <button onclick="startGame('Fácil',2,2)">Fácil 2x2</button>
-  <button onclick="startGame('Medio',3,2)">Medio 2x3</button>
-  <button onclick="startGame('Difícil',4,4)">Difícil 4x4</button>
+  <button onclick="startGame(2,2)">Fácil 2x2</button>
+  <button onclick="startGame(3,2)">Medio 2x3</button>
+  <button onclick="startGame(4,4)">Difícil 4x4</button>
 </div>
 
 <div id="gameUI">
@@ -204,11 +208,13 @@ input {
   </div>
 </div>
 
-<!-- Audios -->
-<audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
-<audio id="flipSound" src="audio/flip.mp3"></audio>
-<audio id="matchSound" src="audio/match.mp3"></audio>
-<audio id="winSound" src="audio/win.mp3"></audio>
+<div id="winModal">
+  <div id="winBox">
+    <h2>🎉 ¡Felicidades!</h2>
+    <p>Has completado el juego</p>
+    <button onclick="goHome()">Volver al menú</button>
+  </div>
+</div>
 
 <script>
 const images=[
@@ -218,16 +224,15 @@ const images=[
 
 let flipped=[],moves=0,matches=0,totalPairs=0;
 let seconds=0,timerInterval=null,started=false;
-let currentLevel='';
 
 const board=document.getElementById('board');
 const movesEl=document.getElementById('moves');
 const timerEl=document.getElementById('timer');
 
-function startGame(level,cols,rows){
-  currentLevel=level;
+function startGame(cols,rows){
   document.getElementById('menu').style.display='none';
-  document.getElementById('gameUI').style.display='flex';
+  document.getElementById('gameUI').style.display='block';
+  document.getElementById('winModal').style.display='none';
 
   board.innerHTML='';
   flipped=[];moves=0;matches=0;
@@ -240,7 +245,7 @@ function startGame(level,cols,rows){
   const selected=images.slice(0,totalPairs);
   const cards=[...selected,...selected].sort(()=>Math.random()-0.5);
 
-  board.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  board.style.gridTemplateColumns=`repeat(${cols},110px)`;
 
   cards.forEach(src=>{
     const c=document.createElement('div');
@@ -266,24 +271,21 @@ function startTimer(){
 function flip(card,src){
   if(card.classList.contains('flipped')||flipped.length===2)return;
 
-  if(!started){
-    started=true;
-    startTimer();
-    bgMusic.volume=0.4;
-    bgMusic.play();
-  }
+  if(!started){ started=true; startTimer(); }
 
-  flipSound.play();
   card.classList.add('flipped');
   flipped.push({card,src});
 
   if(flipped.length===2){
     moves++; movesEl.textContent=moves;
     if(flipped[0].src===flipped[1].src){
-      matchSound.play();
       flipped.forEach(f=>f.card.classList.add('matched'));
       matches++; flipped=[];
-      if(matches===totalPairs) win();
+      if(matches===totalPairs){
+        clearInterval(timerInterval);
+        confetti({particleCount:300});
+        document.getElementById('winModal').style.display='flex';
+      }
     } else {
       setTimeout(()=>{
         flipped.forEach(f=>f.card.classList.remove('flipped'));
@@ -293,17 +295,9 @@ function flip(card,src){
   }
 }
 
-function win(){
-  clearInterval(timerInterval);
-  bgMusic.pause();
-  winSound.play();
-  confetti({particleCount:300,spread:90});
-}
-
 function goHome(){
   document.getElementById('gameUI').style.display='none';
   document.getElementById('menu').style.display='block';
-  bgMusic.pause();
 }
 </script>
 
