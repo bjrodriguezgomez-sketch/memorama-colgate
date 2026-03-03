@@ -36,7 +36,7 @@ header h1 {
 /* LOGO */
 .logo-floating {
   position: fixed;
-  top: 48px; /* justo donde termina el header */
+  top: 100px;
   left: 16px;
   width: 400px;
   z-index: 999;
@@ -195,6 +195,7 @@ button:hover {
   <h1>Colgate-Palmolive Memory</h1>
 </header>
 
+<!-- MENU -->
 <div id="menuScreen" class="screen">
   <div>
     <button onclick="startGame(2)">Fácil 2x2</button>
@@ -203,6 +204,7 @@ button:hover {
   </div>
 </div>
 
+<!-- GAME -->
 <div id="gameScreen" class="screen hidden">
   <div class="gameWrapper">
     <div class="sidePanel">
@@ -213,6 +215,7 @@ button:hover {
   </div>
 </div>
 
+<!-- WIN -->
 <div id="winScreen">
   <div id="winBox">
     <h2>🎉 ¡Felicidades!</h2>
@@ -220,6 +223,7 @@ button:hover {
   </div>
 </div>
 
+<!-- AUDIO -->
 <audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
 <audio id="flipSound" src="audio/flip.mp3"></audio>
 <audio id="matchSound" src="audio/match.mp3"></audio>
