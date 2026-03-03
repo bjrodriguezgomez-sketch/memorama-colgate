@@ -1,172 +1,207 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Colgate-Palmolive Memory</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Colgate-Palmolive Memory</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-* { box-sizing: border-box; }
+  <!-- CONFETTI -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-/* HEADER */
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 48px;
-  background: #8B1E1E;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+      overflow-x: hidden;
+    }
 
-header h1 {
-  font-size: 18px;
-  margin: 0;
-}
+    /* HEADER */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 48px;
+      background: #8B1E1E;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
 
-/* LOGO */
-.logo-floating {
-  position: absolute;
-  top: 32px;
-  left: 40px;
-  width: 200px;
-  z-index: 9;
-}
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: bold;
+    }
 
-.logo-floating img {
-  width: 100%;
-}
+    /* LOGO (AJUSTE FINAL) */
+    .logo-floating {
+      position: absolute;
+      top: 32px; /* 🔧 AJUSTE SOLICITADO */
+      left: 20px;
+      width: 200px;
+      z-index: 9;
+    }
 
-/* MENU */
-#menu {
-  margin-top: 160px;
-  text-align: center;
-}
+    .logo-floating img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
-button {
-  background: #d32f2f;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  margin: 6px;
-  border-radius: 14px;
-  font-size: 16px;
-  cursor: pointer;
-}
+    /* MENU */
+    .menu {
+      margin-top: 160px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
 
-/* GAME UI */
-#gameUI {
-  display: none;
-  margin-top: 120px;
-  position: relative;
-}
+    .menu.hidden {
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+    }
 
-/* SIDE PANEL */
-#sidePanel {
-  position: absolute;
-  top: 0;
-  right: 40px;
-  text-align: right;
-}
+    button {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      margin: 8px;
+      border-radius: 14px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-.stats {
-  font-size: 18px;
-  margin-top: 8px;
-}
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+    }
 
-/* BOARD */
-.game {
-  display: grid;
-  gap: 14px;
-  justify-content: center;
-}
+    /* GAME UI */
+    .game-ui {
+      display: none;
+      margin-top: 120px;
+    }
 
-/* CARD */
-.card {
-  width: 120px;
-  height: 160px;
-  background: #d32f2f;
-  border-radius: 16px;
-  cursor: pointer;
-  perspective: 800px;
-  box-shadow: 0 4px 8px rgba(0,0,0,.25);
-  transition: transform .2s, box-shadow .2s;
-}
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+    }
 
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 18px rgba(0,0,0,.3);
-}
+    .home-btn {
+      background: #d32f2f;
+    }
 
-.card-inner {
-  width: 100%;
-  height: 100%;
-  transition: transform .6s;
-  transform-style: preserve-3d;
-  position: relative;
-}
+    .stats {
+      font-size: 18px;
+      font-weight: bold;
+    }
 
-.card.flipped .card-inner {
-  transform: rotateY(180deg);
-}
+    /* BOARD */
+    .game {
+      display: grid;
+      gap: 12px;
+      max-width: 360px;
+      margin: 20px auto 40px;
+      padding: 0 10px;
+    }
 
-.card-face {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    /* CARD */
+    .card {
+      perspective: 1000px;
+      cursor: pointer;
+    }
 
-.card-front {
-  background: #d32f2f;
-}
+    .card-inner {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s ease, box-shadow 0.2s ease;
+      border-radius: 16px;
+    }
 
-.card-back {
-  background: white;
-  transform: rotateY(180deg);
-  border: 3px solid #d32f2f;
-}
+    .card:hover .card-inner {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+    }
 
-.card-back img {
-  width: 85%;
-  height: 85%;
-  object-fit: contain;
-}
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
 
-/* WIN MODAL */
-#winModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.6);
-  z-index: 30;
-  align-items: center;
-  justify-content: center;
-}
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-#winBox {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 300px;
-  text-align: center;
-}
-</style>
+    .card-front {
+      background: #d32f2f;
+    }
+
+    .card-back {
+      background: white;
+      transform: rotateY(180deg);
+      border: 3px solid #d32f2f;
+    }
+
+    .card-back img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+    }
+
+    /* MATCH ANIMATION */
+    .card.matched .card-inner {
+      animation: matchPulse 0.6s ease;
+      box-shadow: 0 0 18px rgba(211,47,47,0.8);
+    }
+
+    @keyframes matchPulse {
+      0% { transform: rotateY(180deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(1.08); }
+      100% { transform: rotateY(180deg) scale(1); }
+    }
+
+    /* WIN OVERLAY */
+    .win-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    .win-box {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .win-box h2 {
+      margin-top: 0;
+    }
+  </style>
 </head>
 
 <body>
@@ -176,109 +211,141 @@ button {
 </header>
 
 <div class="logo-floating">
-  <img src="img/logo.png">
+  <img src="img/logo.png" alt="Colgate Logo">
 </div>
 
-<div id="menu">
+<!-- MENU -->
+<div class="menu" id="menu">
   <button onclick="startGame(2,2)">Fácil 2x2</button>
-  <button onclick="startGame(3,2)">Medio 2x3</button>
+  <button onclick="startGame(2,3)">Medio 2x3</button>
   <button onclick="startGame(4,4)">Difícil 4x4</button>
 </div>
 
-<div id="gameUI">
-  <div class="game" id="board"></div>
-
-  <div id="sidePanel">
-    <button onclick="goHome()">🏠 Home</button>
+<!-- GAME -->
+<div class="game-ui" id="gameUI">
+  <div class="top-bar">
+    <button class="home-btn" onclick="goHome()">🏠 Home</button>
     <div class="stats">Intentos: <span id="moves">0</span></div>
   </div>
+
+  <div class="game" id="gameBoard"></div>
 </div>
 
-<div id="winModal">
-  <div id="winBox">
+<!-- WIN -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-box">
     <h2>🎉 ¡Felicidades!</h2>
-    <p>Completaste el nivel</p>
     <button onclick="goHome()">Volver al menú</button>
   </div>
 </div>
 
+<!-- AUDIOS -->
+<audio id="bgMusic" src="audio/ambient.mp3" loop></audio>
+<audio id="flipSound" src="audio/flip.mp3"></audio>
+<audio id="matchSound" src="audio/match.mp3"></audio>
+<audio id="winSound" src="audio/win.mp3"></audio>
+
 <script>
-const images = [
-  'img/img1.png','img/img2.png','img/img3.png','img/img4.png',
-  'img/img5.png','img/img6.png','img/img7.png','img/img8.png'
-];
+  const images = Array.from({ length: 8 }, (_, i) => `img/img${i+1}.png`);
 
-let flipped = [];
-let moves = 0;
-let matches = 0;
-let totalPairs = 0;
+  let cards = [];
+  let flipped = [];
+  let moves = 0;
 
-const board = document.getElementById('board');
-const movesEl = document.getElementById('moves');
+  const board = document.getElementById('gameBoard');
+  const movesEl = document.getElementById('moves');
+  const menu = document.getElementById('menu');
+  const gameUI = document.getElementById('gameUI');
+  const winOverlay = document.getElementById('winOverlay');
 
-function startGame(cols, rows) {
-  document.getElementById('menu').style.display = 'none';
-  document.getElementById('gameUI').style.display = 'block';
-  document.getElementById('winModal').style.display = 'none';
+  const bgMusic = document.getElementById('bgMusic');
+  const flipSound = document.getElementById('flipSound');
+  const matchSound = document.getElementById('matchSound');
+  const winSound = document.getElementById('winSound');
 
-  board.innerHTML = '';
-  flipped = [];
-  moves = 0;
-  matches = 0;
-  movesEl.textContent = 0;
-
-  totalPairs = (cols * rows) / 2;
-  const selected = images.slice(0, totalPairs);
-  const cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
-
-  board.style.gridTemplateColumns = `repeat(${cols}, 120px)`;
-
-  cards.forEach(src => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="card-inner">
-        <div class="card-face card-front"></div>
-        <div class="card-face card-back">
-          <img src="${src}">
-        </div>
-      </div>`;
-    card.onclick = () => flip(card, src);
-    board.appendChild(card);
-  });
-}
-
-function flip(card, src) {
-  if (card.classList.contains('flipped') || flipped.length === 2) return;
-
-  card.classList.add('flipped');
-  flipped.push({ card, src });
-
-  if (flipped.length === 2) {
-    moves++;
+  function startGame(rows, cols) {
+    menu.classList.add('hidden');
+    gameUI.style.display = 'block';
+    board.innerHTML = '';
+    moves = 0;
     movesEl.textContent = moves;
+    flipped = [];
 
-    if (flipped[0].src === flipped[1].src) {
-      matches++;
-      flipped = [];
+    bgMusic.currentTime = 0;
+    bgMusic.volume = 0.4;
+    bgMusic.play();
 
-      if (matches === totalPairs) {
-        document.getElementById('winModal').style.display = 'flex';
-      }
-    } else {
-      setTimeout(() => {
-        flipped.forEach(f => f.card.classList.remove('flipped'));
+    const pairs = (rows * cols) / 2;
+    const selected = images.slice(0, pairs);
+    cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
+
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    cards.forEach(img => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const inner = document.createElement('div');
+      inner.className = 'card-inner';
+
+      const front = document.createElement('div');
+      front.className = 'card-face card-front';
+
+      const back = document.createElement('div');
+      back.className = 'card-face card-back';
+
+      const image = document.createElement('img');
+      image.src = img;
+
+      back.appendChild(image);
+      inner.append(front, back);
+      card.appendChild(inner);
+
+      card.addEventListener('click', () => flipCard(card, img));
+      board.appendChild(card);
+    });
+  }
+
+  function flipCard(card, img) {
+    if (card.classList.contains('flipped') || flipped.length === 2) return;
+
+    card.classList.add('flipped');
+    flipSound.play();
+    flipped.push({ card, img });
+
+    if (flipped.length === 2) {
+      moves++;
+      movesEl.textContent = moves;
+
+      if (flipped[0].img === flipped[1].img) {
+        matchSound.play();
+        flipped.forEach(c => c.card.classList.add('matched'));
         flipped = [];
-      }, 800);
+
+        if (document.querySelectorAll('.card.flipped').length === cards.length) {
+          bgMusic.pause();
+          winSound.play();
+          confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+          setTimeout(() => winOverlay.style.display = 'flex', 600);
+        }
+      } else {
+        setTimeout(() => {
+          flipped.forEach(c => c.card.classList.remove('flipped'));
+          flipped = [];
+        }, 900);
+      }
     }
   }
-}
 
-function goHome() {
-  document.getElementById('gameUI').style.display = 'none';
-  document.getElementById('menu').style.display = 'block';
-  document.getElementById('winModal').style.display = 'none';
-}
+  function goHome() {
+    winOverlay.style.display = 'none';
+    gameUI.style.display = 'none';
+    menu.classList.remove('hidden');
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    winSound.pause();
+    winSound.currentTime = 0;
+  }
 </script>
 
 </body>
