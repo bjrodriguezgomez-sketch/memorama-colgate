@@ -42,10 +42,10 @@
       font-weight: bold;
     }
 
-    /* LOGO (AJUSTE FINAL) */
+    /* LOGO */
     .logo-floating {
       position: absolute;
-      top: 32px; /* 🔧 AJUSTE SOLICITADO */
+      top: 32px;
       left: 20px;
       width: 200px;
       z-index: 9;
@@ -89,16 +89,20 @@
     /* GAME UI */
     .game-ui {
       display: none;
-      margin-top: 60px;
+      margin-top: 0; /* ya no empuja nada */
     }
 
-  .top-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  padding: 0 16px;
-  gap: 6px;
-}
+    /* HUD FLOTANTE */
+    .top-bar {
+      position: fixed;
+      top: 32px;
+      left: 240px; /* logo (200px) + aire */
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      z-index: 11;
+    }
 
     .home-btn {
       background: #d32f2f;
@@ -107,6 +111,7 @@
     .stats {
       font-size: 18px;
       font-weight: bold;
+      color: #000;
     }
 
     /* BOARD */
@@ -114,7 +119,7 @@
       display: grid;
       gap: 12px;
       max-width: 360px;
-      margin: 10px auto 40px;
+      margin: 20px auto 40px;
       padding: 0 10px;
     }
 
