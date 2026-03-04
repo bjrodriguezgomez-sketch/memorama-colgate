@@ -90,27 +90,32 @@
       margin-top: 0;
     }
 
-    /* HUD FLOTANTE */
-    .top-bar {
+    /* ELEMENTOS FLOTANTES INDEPENDIENTES */
+    .home-btn {
       position: fixed;
       top: 56px;
       right: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
       z-index: 11;
     }
 
-    .home-btn {
-      background: #d32f2f;
-    }
-
-    .stats,
-    .timer {
+    .stats {
+      position: fixed;
+      top: 102px;
+      right: 16px;
       font-size: 18px;
       font-weight: bold;
       color: #000;
+      z-index: 11;
+    }
+
+    .timer {
+      position: fixed;
+      top: 134px;
+      right: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #000;
+      z-index: 11;
     }
 
     /* BOARD */
@@ -118,7 +123,7 @@
       display: grid;
       gap: 12px;
       max-width: 420px;
-      margin: 0px auto 20px;
+      margin: 20px auto 40px;
       padding: 0 10px;
     }
 
@@ -172,7 +177,7 @@
       object-fit: contain;
     }
 
-    /* MATCH ANIMATION */
+    /* MATCH */
     .card.matched .card-inner {
       animation: matchPulse 0.6s ease;
       box-shadow: 0 0 18px rgba(211,47,47,0.8);
@@ -184,7 +189,7 @@
       100% { transform: rotateY(180deg) scale(1); }
     }
 
-    /* WIN OVERLAY */
+    /* WIN */
     .win-overlay {
       display: none;
       position: fixed;
@@ -227,11 +232,10 @@
 
 <!-- GAME -->
 <div class="game-ui" id="gameUI">
-  <div class="top-bar">
-    <button class="home-btn" onclick="goHome()">🏠 Home</button>
-    <div class="stats">Intentos: <span id="moves">0</span></div>
-    <div class="timer">Tiempo: <span id="time">00:00</span></div>
-  </div>
+
+  <button class="home-btn" onclick="goHome()">🏠 Home</button>
+  <div class="stats">Intentos: <span id="moves">0</span></div>
+  <div class="timer">Tiempo: <span id="time">00:00</span></div>
 
   <div class="game" id="gameBoard"></div>
 </div>
@@ -256,7 +260,6 @@
   let cards = [];
   let flipped = [];
   let moves = 0;
-
   let time = 0;
   let timerInterval = null;
 
@@ -276,9 +279,9 @@
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       time++;
-      const minutes = String(Math.floor(time / 60)).padStart(2, '0');
-      const seconds = String(time % 60).padStart(2, '0');
-      timeEl.textContent = `${minutes}:${seconds}`;
+      const m = String(Math.floor(time / 60)).padStart(2, '0');
+      const s = String(time % 60).padStart(2, '0');
+      timeEl.textContent = `${m}:${s}`;
     }, 1000);
   }
 
@@ -307,10 +310,7 @@
     cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
 
     board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-    if (cols === 2) board.style.maxWidth = '420px';
-    if (cols === 3) board.style.maxWidth = '420px';
-    if (cols === 4) board.style.maxWidth = '460px';
+    board.style.maxWidth = cols === 4 ? '460px' : '420px';
 
     cards.forEach(img => {
       const card = document.createElement('div');
