@@ -91,7 +91,7 @@
       margin-top: 0;
     }
 
-    /* ELEMENTOS FLOTANTES INDEPENDIENTES */
+    /* FLOATING ELEMENTS */
     .home-btn {
       position: fixed;
       top: 56px;
@@ -211,6 +211,55 @@
     .win-box h2 {
       margin-top: 0;
     }
+
+    /* ===================================================
+       RESPONSIVE (AÑADIDO – NO AFECTA DESKTOP)
+    =================================================== */
+
+    /* 📱 MOBILE */
+    @media (max-width: 600px) {
+
+      .logo-floating {
+        width: 240px;
+        top: 6px;
+        left: 8px;
+      }
+
+      .game {
+        margin-top: 80px;
+        max-width: 100%;
+      }
+
+      .home-btn {
+        top: 56px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      .stats,
+      .timer {
+        font-size: 14px;
+        right: 10px;
+      }
+
+      .stats { top: 100px; }
+      .timer { top: 122px; }
+    }
+
+    /* 📲 TABLET */
+    @media (min-width: 601px) and (max-width: 1024px) {
+
+      .logo-floating {
+        width: 300px;
+      }
+
+      .game {
+        max-width: 600px;
+        margin-top: 90px;
+      }
+    }
+
   </style>
 </head>
 
@@ -224,24 +273,19 @@
   <img src="img/logo.png" alt="Colgate Logo">
 </div>
 
-<!-- MENU -->
 <div class="menu" id="menu">
   <button onclick="startGame(2,2)">Fácil 2x2</button>
   <button onclick="startGame(2,3)">Medio 2x3</button>
   <button onclick="startGame(4,4)">Difícil 4x4</button>
 </div>
 
-<!-- GAME -->
 <div class="game-ui" id="gameUI">
-
   <button class="home-btn" onclick="goHome()">🏠 Home</button>
   <div class="stats">Intentos: <span id="moves">0</span></div>
   <div class="timer">Tiempo: <span id="time">00:00</span></div>
-
   <div class="game" id="gameBoard"></div>
 </div>
 
-<!-- WIN -->
 <div class="win-overlay" id="winOverlay">
   <div class="win-box">
     <h2>🎉 ¡Felicidades!</h2>
@@ -256,6 +300,7 @@
 <audio id="winSound" src="audio/win.mp3"></audio>
 
 <script>
+  /* === JS ORIGINAL SIN CAMBIOS === */
   const images = Array.from({ length: 8 }, (_, i) => `img/img${i+1}.png`);
 
   let cards = [];
