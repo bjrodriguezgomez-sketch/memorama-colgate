@@ -16,7 +16,7 @@
       font-family: Arial, sans-serif;
       background: #f5f5f5;
       text-align: center;
-      overflow: hidden; /* 🔒 evita scroll */
+      overflow-x: hidden;
     }
 
     /* HEADER */
@@ -42,8 +42,8 @@
 
     /* LOGO */
     .logo-floating {
-      position: fixed;
-      top: 56px;
+      position: absolute;
+      top: 32px;
       left: 20px;
       width: 200px;
       z-index: 9;
@@ -52,33 +52,7 @@
     .logo-floating img {
       width: 100%;
       height: auto;
-    }
-
-    /* HUD DERECHO */
-    .hud {
-      position: fixed;
-      top: 56px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-      z-index: 9;
-    }
-
-    .hud .stats {
-      font-size: 16px;
-      font-weight: bold;
-    }
-
-    button {
-      background: #d32f2f;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 14px;
-      font-size: 15px;
-      cursor: pointer;
+      display: block;
     }
 
     /* MENU */
@@ -93,19 +67,58 @@
       pointer-events: none;
     }
 
+    button {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      margin: 8px;
+      border-radius: 14px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+    }
+
     /* GAME UI */
     .game-ui {
       display: none;
-      padding-top: 120px;
+      margin-top: 0;
+    }
+
+    /* HUD FLOTANTE */
+    .top-bar {
+      position: fixed;
+      top: 56px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      z-index: 11;
+    }
+
+    .home-btn {
+      background: #d32f2f;
+    }
+
+    .stats,
+    .timer {
+      font-size: 18px;
+      font-weight: bold;
+      color: #000;
     }
 
     /* BOARD */
     .game {
       display: grid;
       gap: 12px;
-      max-width: 560px;
-      max-height: calc(100vh - 180px); /* 🔑 CLAVE */
-      margin: 0 auto;
+      max-width: 420px;
+      margin: 20px auto 40px;
       padding: 0 10px;
     }
 
@@ -117,9 +130,7 @@
 
     .card-inner {
       width: 100%;
-      height: 100%;
       aspect-ratio: 3 / 4;
-      max-height: 150px;
       position: relative;
       transform-style: preserve-3d;
       transition: transform 0.6s ease, box-shadow 0.2s ease;
@@ -127,8 +138,8 @@
     }
 
     .card:hover .card-inner {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.25);
     }
 
     .card.flipped .card-inner {
@@ -161,7 +172,7 @@
       object-fit: contain;
     }
 
-    /* MATCH */
+    /* MATCH ANIMATION */
     .card.matched .card-inner {
       animation: matchPulse 0.6s ease;
       box-shadow: 0 0 18px rgba(211,47,47,0.8);
@@ -173,7 +184,7 @@
       100% { transform: rotateY(180deg) scale(1); }
     }
 
-    /* WIN */
+    /* WIN OVERLAY */
     .win-overlay {
       display: none;
       position: fixed;
@@ -188,6 +199,11 @@
       background: white;
       padding: 30px;
       border-radius: 20px;
+      text-align: center;
+    }
+
+    .win-box h2 {
+      margin-top: 0;
     }
   </style>
 </head>
@@ -202,12 +218,6 @@
   <img src="img/logo.png" alt="Colgate Logo">
 </div>
 
-<div class="hud">
-  <button onclick="goHome()">🏠 Home</button>
-  <div class="stats">Intentos: <span id="moves">0</span></div>
-  <div class="stats">⏱ <span id="time">0</span>s</div>
-</div>
-
 <!-- MENU -->
 <div class="menu" id="menu">
   <button onclick="startGame(2,2)">Fácil 2x2</button>
@@ -217,6 +227,12 @@
 
 <!-- GAME -->
 <div class="game-ui" id="gameUI">
+  <div class="top-bar">
+    <button class="home-btn" onclick="goHome()">🏠 Home</button>
+    <div class="stats">Intentos: <span id="moves">0</span></div>
+    <div class="timer">Tiempo: <span id="time">00:00</span></div>
+  </div>
+
   <div class="game" id="gameBoard"></div>
 </div>
 
@@ -240,8 +256,9 @@
   let cards = [];
   let flipped = [];
   let moves = 0;
+
   let time = 0;
-  let timer;
+  let timerInterval = null;
 
   const board = document.getElementById('gameBoard');
   const movesEl = document.getElementById('moves');
@@ -255,21 +272,31 @@
   const matchSound = document.getElementById('matchSound');
   const winSound = document.getElementById('winSound');
 
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      time++;
+      const minutes = String(Math.floor(time / 60)).padStart(2, '0');
+      const seconds = String(time % 60).padStart(2, '0');
+      timeEl.textContent = `${minutes}:${seconds}`;
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+  }
+
   function startGame(rows, cols) {
     menu.classList.add('hidden');
     gameUI.style.display = 'block';
     board.innerHTML = '';
     moves = 0;
-    time = 0;
     movesEl.textContent = moves;
-    timeEl.textContent = time;
     flipped = [];
 
-    clearInterval(timer);
-    timer = setInterval(() => {
-      time++;
-      timeEl.textContent = time;
-    }, 1000);
+    time = 0;
+    timeEl.textContent = '00:00';
+    startTimer();
 
     bgMusic.currentTime = 0;
     bgMusic.volume = 0.4;
@@ -281,7 +308,9 @@
 
     board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-    if (cols === 4) board.style.maxHeight = 'calc(100vh - 200px)';
+    if (cols === 2) board.style.maxWidth = '420px';
+    if (cols === 3) board.style.maxWidth = '420px';
+    if (cols === 4) board.style.maxWidth = '460px';
 
     cards.forEach(img => {
       const card = document.createElement('div');
@@ -325,7 +354,7 @@
         flipped = [];
 
         if (document.querySelectorAll('.card.flipped').length === cards.length) {
-          clearInterval(timer);
+          stopTimer();
           bgMusic.pause();
           winSound.play();
           confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
@@ -341,7 +370,7 @@
   }
 
   function goHome() {
-    clearInterval(timer);
+    stopTimer();
     winOverlay.style.display = 'none';
     gameUI.style.display = 'none';
     menu.classList.remove('hidden');
