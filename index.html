@@ -91,7 +91,7 @@
       margin-top: 0;
     }
 
-    /* FLOATING ELEMENTS */
+    /* ELEMENTOS FLOTANTES */
     .home-btn {
       position: fixed;
       top: 56px;
@@ -213,53 +213,40 @@
     }
 
     /* ===================================================
-       RESPONSIVE (AÑADIDO – NO AFECTA DESKTOP)
+       📱 MOBILE FIX (VERTICAL)
     =================================================== */
-
-    /* 📱 MOBILE */
     @media (max-width: 600px) {
 
       .logo-floating {
-        width: 240px;
-        top: 6px;
-        left: 8px;
-      }
-
-      .game {
-        margin-top: 80px;
-        max-width: 100%;
+        width: 180px;
+        top: 52px;
+        left: 12px;
       }
 
       .home-btn {
         top: 56px;
-        right: 10px;
-        padding: 8px 12px;
+        right: 12px;
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+
+      .stats {
+        top: 92px;
+        right: 12px;
         font-size: 14px;
       }
 
-      .stats,
       .timer {
+        top: 116px;
+        right: 12px;
         font-size: 14px;
-        right: 10px;
-      }
-
-      .stats { top: 100px; }
-      .timer { top: 122px; }
-    }
-
-    /* 📲 TABLET */
-    @media (min-width: 601px) and (max-width: 1024px) {
-
-      .logo-floating {
-        width: 300px;
       }
 
       .game {
-        max-width: 600px;
-        margin-top: 90px;
+        margin-top: 140px;
+        max-width: 100%;
       }
     }
-
   </style>
 </head>
 
@@ -300,7 +287,6 @@
 <audio id="winSound" src="audio/win.mp3"></audio>
 
 <script>
-  /* === JS ORIGINAL SIN CAMBIOS === */
   const images = Array.from({ length: 8 }, (_, i) => `img/img${i+1}.png`);
 
   let cards = [];
