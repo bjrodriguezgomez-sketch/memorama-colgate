@@ -212,6 +212,15 @@
       margin-top: 0;
     }
 
+    /* Durante la partida el logo se reduce para no tapar las cartas (tablet/escritorio) */
+    @media (min-width: 601px) {
+      body.playing .logo-floating {
+        width: 130px;
+        top: 56px;
+        left: 12px;
+      }
+    }
+
     /* ===================================================
        📱 MOBILE FIX (VERTICAL)
     =================================================== */
@@ -275,7 +284,8 @@
 
 <div class="win-overlay" id="winOverlay">
   <div class="win-box">
-    <h2>🎉 ¡Felicidades!</h2>
+    <h2 id="overlayTitle">🎉 ¡Felicidades!</h2>
+    <p id="overlayText" style="display:none"></p>
     <button onclick="goHome()">Volver al menú</button>
   </div>
 </div>
@@ -294,6 +304,10 @@
   let moves = 0;
   let time = 0;
   let timerInterval = null;
+  let mistakes = 0;
+  let maxMistakes = 0;   // 0 = sin límite (solo nivel Medio tiene límite)
+  let gameOver = false;
+  let gameId = 0;        // evita que temporizadores de una partida afecten a la siguiente
 
   const board = document.getElementById('gameBoard');
   const movesEl = document.getElementById('moves');
@@ -306,6 +320,32 @@
   const flipSound = document.getElementById('flipSound');
   const matchSound = document.getElementById('matchSound');
   const winSound = document.getElementById('winSound');
+
+  function safePlay(a) {
+    const p = a.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+
+  function playSfx(a) {
+    a.currentTime = 0;
+    safePlay(a);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function showOverlay(title, text) {
+    document.getElementById('overlayTitle').textContent = title;
+    const t = document.getElementById('overlayText');
+    t.textContent = text || '';
+    t.style.display = text ? 'block' : 'none';
+    winOverlay.style.display = 'flex';
+  }
 
   function startTimer() {
     clearInterval(timerInterval);
@@ -329,17 +369,23 @@
     movesEl.textContent = moves;
     flipped = [];
 
+    gameId++;
+    mistakes = 0;
+    gameOver = false;
+    maxMistakes = (rows === 2 && cols === 3) ? 2 : 0;
+    document.body.classList.add('playing');
+
     time = 0;
     timeEl.textContent = '00:00';
     startTimer();
 
     bgMusic.currentTime = 0;
     bgMusic.volume = 0.4;
-    bgMusic.play();
+    safePlay(bgMusic);
 
     const pairs = (rows * cols) / 2;
     const selected = images.slice(0, pairs);
-    cards = [...selected, ...selected].sort(() => Math.random() - 0.5);
+    cards = shuffle([...selected, ...selected]);
 
     board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     board.style.maxWidth = cols === 4 ? '460px' : '420px';
@@ -370,10 +416,10 @@
   }
 
   function flipCard(card, img) {
-    if (card.classList.contains('flipped') || flipped.length === 2) return;
+    if (gameOver || card.classList.contains('flipped') || flipped.length === 2) return;
 
     card.classList.add('flipped');
-    flipSound.play();
+    playSfx(flipSound);
     flipped.push({ card, img });
 
     if (flipped.length === 2) {
@@ -381,27 +427,45 @@
       movesEl.textContent = moves;
 
       if (flipped[0].img === flipped[1].img) {
-        matchSound.play();
+        playSfx(matchSound);
         flipped.forEach(c => c.card.classList.add('matched'));
         flipped = [];
 
         if (document.querySelectorAll('.card.flipped').length === cards.length) {
           stopTimer();
           bgMusic.pause();
-          winSound.play();
+          playSfx(winSound);
           confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-          setTimeout(() => winOverlay.style.display = 'flex', 600);
+          const id = gameId;
+          setTimeout(() => {
+            if (id === gameId) showOverlay('🎉 ¡Felicidades!', '');
+          }, 600);
         }
       } else {
+        mistakes++;
+        const id = gameId;
+        const lost = maxMistakes > 0 && mistakes >= maxMistakes;
+        if (lost) {
+          gameOver = true;
+          stopTimer();
+        }
         setTimeout(() => {
+          if (id !== gameId) return;
           flipped.forEach(c => c.card.classList.remove('flipped'));
           flipped = [];
+          if (lost) {
+            bgMusic.pause();
+            showOverlay('💪 Sigue participando', '¡Gracias por jugar!');
+          }
         }, 900);
       }
     }
   }
 
   function goHome() {
+    gameId++;
+    gameOver = false;
+    document.body.classList.remove('playing');
     stopTimer();
     winOverlay.style.display = 'none';
     gameUI.style.display = 'none';
