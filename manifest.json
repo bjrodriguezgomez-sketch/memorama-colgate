@@ -1,0 +1,15 @@
+{
+  "name": "Colgate-Palmolive Memory",
+  "short_name": "Memorama",
+  "description": "Juego de memoria para eventos y actividades",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#f5f5f5",
+  "theme_color": "#8B1E1E",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
