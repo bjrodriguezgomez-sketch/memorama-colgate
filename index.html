@@ -127,6 +127,26 @@
       z-index: 11;
     }
 
+    /* VIDAS */
+    .lives {
+      display: none;
+      margin-top: 100px;
+      font-size: 22px;
+      letter-spacing: 2px;
+    }
+
+    .lives .label {
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 0;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .game.with-lives {
+      margin-top: 12px;
+    }
+
     /* BOARD */
     .game {
       display: grid;
@@ -265,6 +285,11 @@
         margin-top: 140px;
         max-width: 100%;
       }
+
+      .lives {
+        margin-top: 140px;
+        font-size: 18px;
+      }
     }
   </style>
 </head>
@@ -289,6 +314,7 @@
   <button class="home-btn" onclick="goHome()">🏠 Home</button>
   <div class="stats">Intentos: <span id="moves">0</span></div>
   <div class="timer">Tiempo: <span id="time">00:00</span></div>
+  <div class="lives" id="lives"></div>
   <div class="game" id="gameBoard"></div>
 </div>
 
@@ -349,6 +375,20 @@
     return arr;
   }
 
+  function renderLives() {
+    const el = document.getElementById('lives');
+    if (maxMistakes > 0) {
+      const left = Math.max(maxMistakes - mistakes, 0);
+      el.innerHTML = '<span class="label">Vidas:</span>' +
+        '❤️'.repeat(left) + '🖤'.repeat(maxMistakes - left);
+      el.style.display = 'block';
+      board.classList.add('with-lives');
+    } else {
+      el.style.display = 'none';
+      board.classList.remove('with-lives');
+    }
+  }
+
   function showOverlay(title, text) {
     document.getElementById('overlayTitle').textContent = title;
     const t = document.getElementById('overlayText');
@@ -394,7 +434,9 @@
     gameId++;
     mistakes = 0;
     gameOver = false;
-    maxMistakes = (rows === 2 && cols === 3) ? 2 : 0;
+    // Fácil: sin límite | Medio (2x3): 2 errores | Difícil (4x4): 9 errores
+    maxMistakes = (rows === 2 && cols === 3) ? 2 : (rows === 4 && cols === 4 ? 9 : 0);
+    renderLives();
     document.body.classList.add('playing');
 
     time = 0;
@@ -465,6 +507,7 @@
         }
       } else {
         mistakes++;
+        renderLives();
         const id = gameId;
         const lost = maxMistakes > 0 && mistakes >= maxMistakes;
         if (lost) {
